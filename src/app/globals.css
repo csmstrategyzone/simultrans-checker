@@ -1,26 +1,361 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ---------------------------------------------------------------------------
+   SimulTrans Reforged — warm, light-mode-first.
+   Cream base, Simultrans signature orange, royal blue authority.
+--------------------------------------------------------------------------- */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cream: #fef9f0;
+  --paper: #ffffff;
+
+  --sunset: #f97316;
+  --fire: #ea580c;
+  --ember: #dc2626;
+
+  --royal: #1e3a8a;
+
+  --ink: #0f172a;
+  --ink-muted: #475569;
+
+  --border-warm: #f5e6d3;
+  --flag-red: #dc2626;
+  --sage: #059669;
+  --purple: #7c3aed; /* "Brand Voice" issue category only */
+  --neutral: #64748b; /* score count-up start colour */
+
+  --radius: 16px;
+  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* The signature moment: "meaning" */
+  --meaning-gradient: linear-gradient(
+    90deg,
+    var(--sunset),
+    var(--fire),
+    var(--ember)
+  );
+}
+
+/* shadcn token surface mapped onto the brand. Light is the only mode. */
+:root {
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--royal);
+  --primary-foreground: #ffffff;
+  --secondary: #fdf2e3;
+  --secondary-foreground: var(--ink);
+  --muted: #fdf2e3;
+  --muted-foreground: var(--ink-muted);
+  --accent: #fff1e4;
+  --accent-foreground: var(--ink);
+  --destructive: var(--ember);
+  --border: var(--border-warm);
+  --input: var(--border-warm);
+  --ring: var(--royal);
+  --chart-1: var(--sunset);
+  --chart-2: var(--royal);
+  --chart-3: var(--sage);
+  --chart-4: var(--ember);
+  --chart-5: var(--ink-muted);
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--royal);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fff1e4;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--border-warm);
+  --sidebar-ring: var(--royal);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-quote: var(--font-playfair), ui-serif, Georgia, serif;
+
+  /* Brand tokens exposed as utilities: bg-cream, text-sunset, border-warm, ... */
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-sunset: var(--sunset);
+  --color-fire: var(--fire);
+  --color-ember: var(--ember);
+  --color-royal: var(--royal);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-warm: var(--border-warm);
+  --color-flag: var(--flag-red);
+  --color-sage: var(--sage);
+  --color-purple: var(--purple);
+  --color-neutral: var(--neutral);
+
+  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+  }
+
+  ::selection {
+    background: rgba(249, 115, 22, 0.18);
+    color: var(--ink);
+  }
+
+  /* Keyboard-only focus. Mouse users never see these. */
+  :focus-visible {
+    outline: 2px solid var(--royal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+    border-color: var(--royal);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .hero-type {
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  /* The linguist's voice. */
+  .voice {
+    font-family: var(--font-playfair), serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  /* The signature moment: Playfair italic + sunset→ember gradient text. */
+  .meaning {
+    font-family: var(--font-playfair), serif;
+    font-style: italic;
+    font-weight: 400;
+    background: var(--meaning-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+
+    /* The italic 'g' has a long tail that swings right and well below the
+       baseline. Without these it collides with the following period and gets
+       clipped by the background box that bg-clip-text paints through. */
+    letter-spacing: 0.02em;
+    padding-right: 0.03em;
+    padding-bottom: 0.12em;
+    line-height: 1.15;
+  }
+
+  /* Numbered tool-card sections: editorial, not dev-tool. */
+  .step-label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .step-num {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Section eyebrows. Inter Tight, sentence case — NOT mono.
+     Mono is reserved for exactly three things: the character counter, the score
+     display, and the raw AI translation output. Nothing else. */
+  .eyebrow {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  /* Glassmorphism over cream — warm, not grey. */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--border-warm);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Select options fade+slide in, 30ms apart. Index comes from --i. */
+  .select-stagger {
+    animation: option-in 0.25s var(--ease-signature) both;
+    animation-delay: calc(var(--i, 0) * 30ms);
+  }
+
+  @keyframes option-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Loading bar under the Analyze button. */
+  .shimmer-bar {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--sunset),
+      var(--ember),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Light reading across the active review step. */
+  .step-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--ink) 0%,
+      var(--ink) 35%,
+      rgba(249, 115, 22, 0.85) 50%,
+      var(--ink) 65%,
+      var(--ink) 100%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: step-sweep 1.2s linear infinite;
+  }
+
+  @keyframes step-sweep {
+    from { background-position: 150% 0; }
+    to   { background-position: -150% 0; }
+  }
+
+  /* Motes drifting up the review panel. */
+  .mote {
+    animation: mote-rise 9s linear infinite;
+  }
+
+  @keyframes mote-rise {
+    0%   { transform: translateY(0); opacity: 0; }
+    15%  { opacity: 0.5; }
+    85%  { opacity: 0.3; }
+    100% { transform: translateY(-160px); opacity: 0; }
+  }
+
+  /* The checkmark nods once as it lands. */
+  .check-nod {
+    animation: nod 0.45s var(--ease-signature) 1;
+  }
+
+  @keyframes nod {
+    0%   { transform: rotate(0deg); }
+    35%  { transform: rotate(3deg); }
+    70%  { transform: rotate(-3deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .select-stagger,
+    .shimmer-bar,
+    .step-shimmer,
+    .mote,
+    .check-nod {
+      animation: none;
+    }
+
+    .step-shimmer {
+      color: var(--ink);
+      -webkit-text-fill-color: var(--ink);
+    }
+  }
 }
