@@ -1,21 +1,24 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { isSupportedLanguage } from "@/lib/languages";
+import { countWords, MAX_WORDS } from "@/lib/words";
 
 const VERTICALS = ["medical", "legal", "marketing", "software"] as const;
-const LANGUAGES = [
-  "German",
-  "Japanese",
-  "French",
-  "Spanish",
-  "Simplified Chinese",
-  "Brazilian Portuguese",
-] as const;
 
 const RequestSchema = z.object({
   vertical: z.enum(VERTICALS),
-  language: z.enum(LANGUAGES),
-  sourceText: z.string().trim().min(10).max(3000),
+  // Validated against the shared language list below, so the two never drift.
+  language: z.string().min(1).refine(isSupportedLanguage, "Unsupported language"),
+  sourceText: z
+    .string()
+    .trim()
+    .min(3)
+    .max(4000)
+    .refine(
+      (s) => countWords(s) <= MAX_WORDS,
+      `Please reduce to ${MAX_WORDS} words or fewer to analyze`,
+    ),
 });
 
 const IssueSchema = z.object({
@@ -62,7 +65,7 @@ export type Issue = z.infer<typeof IssueSchema>;
 
 const verticalMeta = {
   medical: {
-    label: "Medical & Pharma",
+    label: "Medical and Pharma",
     context:
       "MDR / IVDR / FDA regulatory language, medical device instructions, pharmaceutical safety information",
   },
@@ -72,11 +75,11 @@ const verticalMeta = {
       "contracts, terms of service, compliance clauses, arbitration provisions",
   },
   marketing: {
-    label: "Marketing & Brand",
-    context: "web copy, campaign creative, sales content, brand voice",
+    label: "Marketing and Brand",
+    context: "web copy, campaign creative, promotional content, brand voice",
   },
   software: {
-    label: "Software & SaaS",
+    label: "Software and SaaS",
     context:
       "product UI strings, error messages, in-app documentation, developer docs",
   },
@@ -197,13 +200,13 @@ export async function POST(req: NextRequest) {
   const { vertical, language, sourceText } = parsed.data;
   const meta = verticalMeta[vertical];
 
-  const system = `You are a senior ISO 17100-certified linguistic quality specialist at SimulTrans, a Dublin-based localization firm with 40 years of expertise in ${meta.label} translation. You review AI-generated translations for enterprise clients and flag issues that could cost them regulatory approvals, brand equity, or customer trust.`;
+  const system = `You are a senior linguistic quality specialist at SimulTrans, a US-headquartered localization firm with 40 years of expertise in ${meta.label} translation. You review AI-generated translations for enterprise clients and flag issues that could cost them regulatory approvals, brand equity, or customer trust.`;
 
   const userPrompt = `Analyze this English source content and produce a rigorous linguist review.
 
 Task:
-1. Produce a plausible raw AI machine translation into ${language} — the kind of output a general-purpose LLM would generate. It should be grammatically correct but subtly flawed in ways a specialist would immediately catch (wrong industry term, register mismatch, cultural miss, ambiguity).
-2. Identify 3 to 5 SPECIFIC issues a certified ${meta.label} linguist would flag in that translation. Each issue must reference actual terms, structures, or cultural conventions in ${language} — not generic complaints.
+1. Produce a plausible raw AI machine translation into ${language}, the kind of output a general-purpose LLM would generate. It should be grammatically correct but subtly flawed in ways a specialist would immediately catch (wrong industry term, register mismatch, cultural miss, ambiguity).
+2. Identify 3 to 5 SPECIFIC issues a certified ${meta.label} linguist would flag in that translation. Each issue must reference actual terms, structures, or cultural conventions in ${language}, not generic complaints.
 3. Assign an overall quality score from 0 to 100.
 
 Industry context: ${meta.context}
@@ -213,11 +216,13 @@ Source content:
 ${sourceText}
 """
 
-Every issue must be fully written and genuine. NEVER emit filler text such as "placeholder", "TBD", or "N/A" in any field — if you can only find three real issues, return exactly three rather than padding the list.
+Every issue must be fully written and genuine. NEVER emit filler text such as "placeholder", "TBD", or "N/A" in any field. If you can only find three real issues, return exactly three rather than padding the list.
 
-LANGUAGE RULE — this matters: the "translation" field is the ONLY field written in ${language}. The verdict, and every issue's problem, impact, and fix, must be written in ENGLISH for an English-speaking client, quoting the specific ${language} terms inline where relevant.
+STYLE RULE: Do not use em dashes (—) anywhere in your output. Use commas or periods instead. Do not use the ampersand "&"; write "and".
 
-The verdict must be ONE sentence, maximum 30 words — it is displayed as a large pull quote, so length matters. It should read as a certified linguist would speak it — direct, professional, specific. The impact of each issue must be a concrete business consequence (regulatory delay, brand damage, compliance risk, conversion loss). The fix must be what a certified linguist would do instead — specific and actionable.`;
+LANGUAGE RULE – this matters: the "translation" field is the ONLY field written in ${language}. The verdict, and every issue's problem, impact, and fix, must be written in ENGLISH for an English-speaking client, quoting the specific ${language} terms inline where relevant.
+
+The verdict must be ONE sentence, maximum 30 words, it is displayed as a large pull quote, so length matters. It should read as a certified linguist would speak it, direct, professional, specific. The impact of each issue must be a concrete business consequence (regulatory delay, brand damage, compliance risk, conversion loss). The fix must be what a certified linguist would do instead, specific and actionable.`;
 
   const anthropic = new Anthropic({ apiKey });
 

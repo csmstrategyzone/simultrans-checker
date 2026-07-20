@@ -1,22 +1,17 @@
 "use client";
 
 import { useRef } from "react";
-import { AmbientGlow } from "@/components/ambient-glow";
+import { DisclaimerBanner } from "@/components/disclaimer-banner";
 import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/how-it-works";
 import { SiteHeader } from "@/components/site-header";
+import { StickyCta } from "@/components/sticky-cta";
 import { ToolCard, type ToolCardHandle } from "@/components/tool-card";
+import { TrustBar } from "@/components/trust-bar";
+import { scrollToTool } from "@/lib/scroll";
 
 export default function Home() {
   const tool = useRef<ToolCardHandle>(null);
-
-  // Clear the sticky header: 80px on desktop, 60px on mobile.
-  const scrollToTool = () => {
-    const el = document.getElementById("tool");
-    if (!el) return;
-    const offset = window.innerWidth < 640 ? 60 : 80;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: "smooth" });
-  };
 
   const runSampleReport = () => {
     scrollToTool();
@@ -26,14 +21,17 @@ export default function Home() {
   return (
     <>
       <SiteHeader />
-      <main className="relative flex-1">
-        <AmbientGlow />
+      <DisclaimerBanner />
+      <main className="flex-1">
         <Hero onRunCheck={scrollToTool} onSampleReport={runSampleReport} />
+        <HowItWorks />
+        <TrustBar />
 
-        <div className="px-6 pb-28">
+        <div className="bg-surface px-6 py-20">
           <ToolCard ref={tool} />
         </div>
       </main>
+      <StickyCta />
     </>
   );
 }

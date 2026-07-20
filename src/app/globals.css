@@ -3,99 +3,89 @@
 @import "shadcn/tailwind.css";
 
 /* ---------------------------------------------------------------------------
-   SimulTrans Reforged — warm, light-mode-first.
-   Cream base, Simultrans signature orange, royal blue authority.
+   SimulTrans Checker — official SimulTrans brand system.
+   Clean, calm, enterprise. White base, SimulTrans blue authority, green human.
+   Palette is fixed: blue, light blue, green, light green, red, orange, gold.
+   No other colors. No gradients that invent new shades.
 --------------------------------------------------------------------------- */
 
 :root {
-  --cream: #fef9f0;
-  --paper: #ffffff;
+  /* ── SimulTrans official brand colors ── */
+  --st-blue: #00529b; /* primary — headers, primary CTAs */
+  --st-blue-light: #68aee0; /* secondary accents, hover, subtle backgrounds */
+  --st-green: #409a3c; /* success, human / linguist references */
+  --st-green-light: #60b070; /* softer green */
+  --st-red: #db5c3b; /* errors, high severity, warnings */
+  --st-orange: #f7941d; /* medium severity, attention markers */
+  --st-gold: #ffc222; /* highlights, ratings, stars */
 
-  --sunset: #f97316;
-  --fire: #ea580c;
-  --ember: #dc2626;
+  /* ── Neutrals ── */
+  --white: #ffffff;
+  --surface: #f8fafc; /* card / section surfaces */
+  --ink: #0f172a; /* body text — near-black */
+  --ink-muted: #64748b; /* secondary / muted gray */
+  --line: #e2e8f0; /* borders / hairlines */
 
-  --royal: #1e3a8a;
-
-  --ink: #0f172a;
-  --ink-muted: #475569;
-
-  --border-warm: #f5e6d3;
-  --flag-red: #dc2626;
-  --sage: #059669;
-  --purple: #7c3aed; /* "Brand Voice" issue category only */
-  --neutral: #64748b; /* score count-up start colour */
-
-  --radius: 16px;
-  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* The signature moment: "meaning" */
-  --meaning-gradient: linear-gradient(
-    90deg,
-    var(--sunset),
-    var(--fire),
-    var(--ember)
-  );
+  --radius: 12px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* shadcn token surface mapped onto the brand. Light is the only mode. */
+/* shadcn token surface mapped onto the SimulTrans brand. Light is the only mode. */
 :root {
-  --background: var(--cream);
+  --background: var(--white);
   --foreground: var(--ink);
-  --card: var(--paper);
+  --card: var(--white);
   --card-foreground: var(--ink);
-  --popover: var(--paper);
+  --popover: var(--white);
   --popover-foreground: var(--ink);
-  --primary: var(--royal);
+  --primary: var(--st-blue);
   --primary-foreground: #ffffff;
-  --secondary: #fdf2e3;
+  --secondary: var(--surface);
   --secondary-foreground: var(--ink);
-  --muted: #fdf2e3;
+  --muted: var(--surface);
   --muted-foreground: var(--ink-muted);
-  --accent: #fff1e4;
+  --accent: rgba(104, 174, 224, 0.12);
   --accent-foreground: var(--ink);
-  --destructive: var(--ember);
-  --border: var(--border-warm);
-  --input: var(--border-warm);
-  --ring: var(--royal);
-  --chart-1: var(--sunset);
-  --chart-2: var(--royal);
-  --chart-3: var(--sage);
-  --chart-4: var(--ember);
+  --destructive: var(--st-red);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--st-blue);
+  --chart-1: var(--st-blue);
+  --chart-2: var(--st-green);
+  --chart-3: var(--st-orange);
+  --chart-4: var(--st-gold);
   --chart-5: var(--ink-muted);
-  --sidebar: var(--paper);
+  --sidebar: var(--white);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--royal);
+  --sidebar-primary: var(--st-blue);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #fff1e4;
+  --sidebar-accent: rgba(104, 174, 224, 0.12);
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--border-warm);
-  --sidebar-ring: var(--royal);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--st-blue);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
-  --font-quote: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-sans: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-barlow), "Barlow Condensed", ui-sans-serif, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  /* Brand tokens exposed as utilities: bg-cream, text-sunset, border-warm, ... */
-  --color-cream: var(--cream);
-  --color-paper: var(--paper);
-  --color-sunset: var(--sunset);
-  --color-fire: var(--fire);
-  --color-ember: var(--ember);
-  --color-royal: var(--royal);
+  /* Brand tokens exposed as utilities: bg-st-blue, text-st-green, border-line, ... */
+  --color-st-blue: var(--st-blue);
+  --color-st-blue-light: var(--st-blue-light);
+  --color-st-green: var(--st-green);
+  --color-st-green-light: var(--st-green-light);
+  --color-st-red: var(--st-red);
+  --color-st-orange: var(--st-orange);
+  --color-st-gold: var(--st-gold);
+  --color-white: var(--white);
+  --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
-  --color-warm: var(--border-warm);
-  --color-flag: var(--flag-red);
-  --color-sage: var(--sage);
-  --color-purple: var(--purple);
-  --color-neutral: var(--neutral);
+  --color-line: var(--line);
 
   --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -150,18 +140,22 @@
   }
 
   body {
-    background: var(--cream);
+    background: var(--white);
     color: var(--ink);
   }
 
+  h1, h2, h3, h4 {
+    font-family: var(--font-barlow), "Barlow Condensed", ui-sans-serif, sans-serif;
+  }
+
   ::selection {
-    background: rgba(249, 115, 22, 0.18);
+    background: rgba(0, 82, 155, 0.14);
     color: var(--ink);
   }
 
   /* Keyboard-only focus. Mouse users never see these. */
   :focus-visible {
-    outline: 2px solid var(--royal);
+    outline: 2px solid var(--st-blue);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -170,8 +164,8 @@
   textarea:focus-visible,
   select:focus-visible {
     outline: none;
-    border-color: var(--royal);
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+    border-color: var(--st-blue);
+    box-shadow: 0 0 0 3px rgba(0, 82, 155, 0.15);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -182,75 +176,42 @@
 }
 
 @layer components {
+  /* Headline type — Barlow Condensed, tight and confident. */
   .hero-type {
-    font-weight: 800;
-    letter-spacing: -0.045em;
-    line-height: 1.05;
+    font-family: var(--font-barlow), "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
     text-wrap: balance;
   }
 
-  /* The linguist's voice. */
-  .voice {
-    font-family: var(--font-playfair), serif;
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-  }
-
-  /* The signature moment: Playfair italic + sunset→ember gradient text. */
-  .meaning {
-    font-family: var(--font-playfair), serif;
-    font-style: italic;
-    font-weight: 400;
-    background: var(--meaning-gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-
-    /* The italic 'g' has a long tail that swings right and well below the
-       baseline. Without these it collides with the following period and gets
-       clipped by the background box that bg-clip-text paints through. */
-    letter-spacing: 0.02em;
-    padding-right: 0.03em;
-    padding-bottom: 0.12em;
-    line-height: 1.15;
-  }
-
-  /* Numbered tool-card sections: editorial, not dev-tool. */
+  /* Numbered tool-card sections. */
   .step-label {
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
-    font-size: 0.9375rem;
+    font-family: var(--font-barlow), "Barlow Condensed", sans-serif;
+    font-size: 1.25rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--ink);
   }
 
   .step-num {
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--ink-muted);
+    font-weight: 500;
+    color: var(--st-blue);
     font-variant-numeric: tabular-nums;
   }
 
-  /* Section eyebrows. Inter Tight, sentence case — NOT mono.
-     Mono is reserved for exactly three things: the character counter, the score
-     display, and the raw AI translation output. Nothing else. */
+  /* Section eyebrows — Source Sans, uppercase, letter-spaced. */
   .eyebrow {
     font-weight: 600;
-    letter-spacing: 0.02em;
-    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
     line-height: 1.4;
-  }
-
-  /* Glassmorphism over cream — warm, not grey. */
-  .glass {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid var(--border-warm);
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
   }
 
   .tabular {
@@ -260,14 +221,14 @@
 
   /* Select options fade+slide in, 30ms apart. Index comes from --i. */
   .select-stagger {
-    animation: option-in 0.25s var(--ease-signature) both;
-    animation-delay: calc(var(--i, 0) * 30ms);
+    animation: option-in 0.22s var(--ease) both;
+    animation-delay: calc(var(--i, 0) * 25ms);
   }
 
   @keyframes option-in {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(6px);
     }
     to {
       opacity: 1;
@@ -275,13 +236,13 @@
     }
   }
 
-  /* Loading bar under the Analyze button. */
+  /* Loading bar under the Analyze button — SimulTrans blue → green sweep. */
   .shimmer-bar {
     background: linear-gradient(
       90deg,
       transparent,
-      var(--sunset),
-      var(--ember),
+      var(--st-blue),
+      var(--st-green),
       transparent
     );
     background-size: 200% 100%;
@@ -297,65 +258,23 @@
     }
   }
 
-  /* Light reading across the active review step. */
-  .step-shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--ink) 0%,
-      var(--ink) 35%,
-      rgba(249, 115, 22, 0.85) 50%,
-      var(--ink) 65%,
-      var(--ink) 100%
-    );
-    background-size: 250% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    animation: step-sweep 1.2s linear infinite;
-  }
-
-  @keyframes step-sweep {
-    from { background-position: 150% 0; }
-    to   { background-position: -150% 0; }
-  }
-
-  /* Motes drifting up the review panel. */
-  .mote {
-    animation: mote-rise 9s linear infinite;
-  }
-
-  @keyframes mote-rise {
-    0%   { transform: translateY(0); opacity: 0; }
-    15%  { opacity: 0.5; }
-    85%  { opacity: 0.3; }
-    100% { transform: translateY(-160px); opacity: 0; }
-  }
-
   /* The checkmark nods once as it lands. */
   .check-nod {
-    animation: nod 0.45s var(--ease-signature) 1;
+    animation: nod 0.45s var(--ease) 1;
   }
 
   @keyframes nod {
-    0%   { transform: rotate(0deg); }
-    35%  { transform: rotate(3deg); }
-    70%  { transform: rotate(-3deg); }
+    0% { transform: rotate(0deg); }
+    35% { transform: rotate(3deg); }
+    70% { transform: rotate(-3deg); }
     100% { transform: rotate(0deg); }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .select-stagger,
     .shimmer-bar,
-    .step-shimmer,
-    .mote,
     .check-nod {
       animation: none;
-    }
-
-    .step-shimmer {
-      color: var(--ink);
-      -webkit-text-fill-color: var(--ink);
     }
   }
 }
