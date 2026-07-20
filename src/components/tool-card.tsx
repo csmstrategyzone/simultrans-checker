@@ -7,23 +7,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { AnimatePresence, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, FileText } from "lucide-react";
 import { ReviewProgress, type ReviewStatus } from "@/components/review-progress";
 import { Results } from "@/components/results";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LanguageCombobox } from "@/components/language-combobox";
 import type { Analysis } from "@/app/api/analyze/route";
 import { VerticalCard } from "@/components/vertical-card";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+import { countWords, MAX_WORDS } from "@/lib/words";
 
 export type VerticalId = "medical" | "legal" | "marketing" | "software";
 
@@ -35,7 +26,7 @@ export const VERTICALS: {
 }[] = [
   {
     id: "medical",
-    label: "Medical & Pharma",
+    label: "Medical and Pharma",
     sublabel: "MDR · IVDR · FDA",
     sample:
       "Do not use if the patient exhibits signs of hypersensitivity to any component. Discontinue treatment immediately if severe reactions occur and seek emergency medical assistance. This device may cause tissue damage if used incorrectly.",
@@ -49,27 +40,18 @@ export const VERTICALS: {
   },
   {
     id: "marketing",
-    label: "Marketing & Brand",
-    sublabel: "Web · Campaigns · Sales copy",
+    label: "Marketing and Brand",
+    sublabel: "Web · Campaigns · Promotional copy",
     sample:
-      "Break through the noise with content that connects. Our AI-powered platform helps growth teams move faster than ever — turning insight into action in seconds, not weeks.",
+      "Break through the noise with content that connects. Our AI-powered platform helps growth teams move faster than ever, turning insight into action in seconds, not weeks.",
   },
   {
     id: "software",
-    label: "Software & SaaS",
+    label: "Software and SaaS",
     sublabel: "UI · Docs · Product",
     sample:
       "Unable to complete this action. Please check your permissions and try again. If the problem persists, contact your workspace administrator or reach out to our support team for assistance.",
   },
-];
-
-const LANGUAGES = [
-  { value: "German", label: "German (de-DE)" },
-  { value: "Japanese", label: "Japanese (ja-JP)" },
-  { value: "French", label: "French (fr-FR)" },
-  { value: "Spanish", label: "Spanish (es-ES)" },
-  { value: "Simplified Chinese", label: "Simplified Chinese (zh-CN)" },
-  { value: "Brazilian Portuguese", label: "Brazilian Portuguese (pt-BR)" },
 ];
 
 /** Nobody wants to read a raw validation string on a demo screen. */
@@ -100,7 +82,6 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
   const [status, setStatus] = useState<ReviewStatus>("running");
   const [reviewing, setReviewing] = useState(false);
 
-  const scope = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
 
   // The last payload analyzed, so Retry re-runs the same request.
@@ -111,7 +92,7 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
     l: string = language,
     s: string = sourceText,
   ) => {
-    if (!s.trim()) return;
+    if (!s.trim() || countWords(s) > MAX_WORDS) return;
     lastRun.current = { vertical: v, language: l, sourceText: s };
 
     setLoading(true);
@@ -140,7 +121,6 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
       // it hands back via onSettled.
       setResult(data as Analysis);
       setStatus("done");
-      console.log(data); // Phase 5 renders this
     } catch {
       setError("Couldn't reach the analysis service. Check your connection.");
       setStatus("error");
@@ -186,31 +166,6 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
     },
   }));
 
-  useGSAP(
-    () => {
-      if (reduced) return;
-
-      gsap.from(scope.current, {
-        opacity: 0,
-        y: 40,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: { trigger: scope.current, start: "top 80%" },
-      });
-
-      gsap.from(".tool-step", {
-        opacity: 0,
-        y: 20,
-        duration: 0.5,
-        ease: "power2.out",
-        stagger: 0.08,
-        delay: 0.15,
-        scrollTrigger: { trigger: scope.current, start: "top 80%" },
-      });
-    },
-    { scope, dependencies: [reduced] },
-  );
-
   /** Arrow keys move selection within the radiogroup, wrapping at both ends. */
   const onVerticalKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"];
@@ -248,180 +203,188 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
     setError(null);
   };
 
-  const count = sourceText.length;
-  const canAnalyze = sourceText.trim().length > 0 && !loading;
+  const words = countWords(sourceText);
+  const overLimit = words > MAX_WORDS;
+  const canAnalyze = sourceText.trim().length > 0 && !overLimit && !loading;
+
+  // "127 / 300 words" — green under 250, gold 250-299, orange at/over 300.
+  const counterColor =
+    words >= MAX_WORDS
+      ? "#F7941D"
+      : words >= 250
+        ? "#FFC222"
+        : "#409A3C";
 
   const activeVertical = VERTICALS.find((v) => v.id === vertical)!;
 
   return (
     <>
-    <div
-      id="tool"
-      ref={scope}
-      className="mx-auto max-w-5xl scroll-mt-24 rounded-[20px] border border-warm bg-white/85 p-6 shadow-[0_10px_50px_-20px_rgba(15,23,42,0.15)] backdrop-blur-xl backdrop-saturate-150 sm:p-12"
-    >
-      {/* ── 01 CONTENT TYPE ─────────────────────────────────── */}
-      <section className="tool-step">
-        <h2 className="step-label">
-          <span className="step-num">01</span>
-          Choose your content type
-        </h2>
-
-        {/* Radiogroup: arrow keys move between options, Tab enters/leaves the set. */}
-        <div
-          role="radiogroup"
-          aria-label="Content type"
-          onKeyDown={onVerticalKeyDown}
-          className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {VERTICALS.map((v) => (
-            <VerticalCard
-              key={v.id}
-              id={v.id}
-              label={v.label}
-              sublabel={v.sublabel}
-              active={v.id === vertical}
-              onSelect={() => selectVertical(v.id)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* ── 02 · SOURCE CONTENT ─────────────────────────────── */}
-      <section className="tool-step mt-10">
-        <div className="flex items-center justify-between gap-4">
+      <motion.div
+        id="tool"
+        initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="mx-auto max-w-5xl scroll-mt-24 rounded-2xl border border-line bg-white p-6 shadow-[0_10px_40px_-24px_rgba(15,23,42,0.25)] sm:p-12"
+      >
+        {/* ── 01 CONTENT TYPE ─────────────────────────────────── */}
+        <section>
           <h2 className="step-label">
-            <span className="step-num">02</span>
-            Paste English source content
+            <span className="step-num">01</span>
+            Choose your content type
           </h2>
 
-          <button
-            type="button"
-            onClick={() => loadSample()}
-            className="group relative inline-flex min-h-[44px] shrink-0 items-center text-sm font-medium text-sunset"
+          <div
+            role="radiogroup"
+            aria-label="Content type"
+            onKeyDown={onVerticalKeyDown}
+            className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
           >
-            {sampleLoaded ? "Reload sample" : "Try a sample →"}
-            <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-sunset transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100" />
-          </button>
-        </div>
+            {VERTICALS.map((v) => (
+              <VerticalCard
+                key={v.id}
+                id={v.id}
+                label={v.label}
+                sublabel={v.sublabel}
+                active={v.id === vertical}
+                onSelect={() => selectVertical(v.id)}
+              />
+            ))}
+          </div>
+        </section>
 
-        {sourceText.length > 0 && (
-          <div className="mt-3 flex justify-end">
+        {/* ── 02 · SOURCE CONTENT ─────────────────────────────── */}
+        <section className="mt-10">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="step-label">
+              <span className="step-num">02</span>
+              Paste English source content
+            </h2>
+
             <button
               type="button"
-              onClick={clear}
-              className="min-h-[44px] px-1 text-xs font-medium text-ink-muted transition-colors duration-200 hover:text-ink"
+              onClick={() => loadSample()}
+              className="inline-flex min-h-[44px] shrink-0 items-center text-sm font-semibold text-st-blue hover:underline"
             >
-              Clear
+              {sampleLoaded ? "Reload sample" : "Try a sample →"}
             </button>
           </div>
-        )}
 
-        <textarea
-          value={sourceText}
-          onChange={(e) => {
-            setSourceText(e.target.value);
-            if (sampleLoaded) setSampleLoaded(false);
-          }}
-          placeholder="Paste product copy, regulatory text, marketing content, UI strings — anything you're planning to publish in another language."
-          className="mt-3 max-h-[400px] min-h-[140px] w-full resize-y rounded-xl border border-warm bg-white p-5 text-[0.9375rem] leading-[1.6] text-pretty text-ink transition-shadow duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none placeholder:text-ink-muted/70 focus:border-royal focus:shadow-[0_0_0_3px_rgba(30,58,138,0.15)] sm:min-h-[180px]"
-        />
-
-        <p className="mt-3 font-mono text-xs text-ink-muted">
-          {count > 0 && `${count} characters · `}
-          Nothing is stored. This is a preview only.
-        </p>
-      </section>
-
-      {/* ── 03 · LANGUAGE + ANALYZE ─────────────────────────── */}
-      <section className="tool-step mt-10 flex flex-col gap-4 sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <h2 className="step-label">
-            <span className="step-num">03</span>
-            Target language
-          </h2>
-
-          <Select
-            items={LANGUAGES}
-            value={language}
-            onValueChange={(v) => setLanguage(v as string)}
-          >
-            <SelectTrigger className="mt-4 h-[52px] w-full rounded-xl border-warm bg-white px-4 data-[size=default]:h-[52px] text-[0.9375rem] font-medium text-ink transition-colors duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-royal data-[popup-open]:border-royal focus-visible:border-royal focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_rgba(30,58,138,0.15)]">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent className="rounded-xl border border-warm bg-white p-1">
-              {LANGUAGES.map((l, i) => (
-                <SelectItem
-                  key={l.value}
-                  value={l.value}
-                  style={{ "--i": i } as React.CSSProperties}
-                  className="select-stagger rounded-lg px-3 py-2.5 text-[0.9375rem] text-ink data-highlighted:bg-accent"
-                >
-                  {l.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="relative">
-          <button
-            type="button"
-            disabled={!canAnalyze}
-            onClick={() => analyze()}
-            className="group h-[52px] w-full min-w-[240px] rounded-xl border-b-2 border-sunset bg-royal px-7 text-[0.9375rem] font-semibold text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] enabled:hover:brightness-110 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-          >
-            {loading ? (
-              "Analyzing…"
-            ) : (
-              <>
-                Analyze translation
-                <span className="ml-1.5 inline-block transition-transform duration-200 group-enabled:group-hover:translate-x-1">
-                  →
-                </span>
-              </>
-            )}
-          </button>
-
-          {loading && (
-            <span className="shimmer-bar absolute inset-x-0 -bottom-2 h-0.5 overflow-hidden rounded-full" />
+          {sourceText.length > 0 && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={clear}
+                className="min-h-[44px] px-1 text-xs font-medium text-ink-muted transition-colors duration-200 hover:text-ink"
+              >
+                Clear
+              </button>
+            </div>
           )}
+
+          <textarea
+            value={sourceText}
+            onChange={(e) => {
+              setSourceText(e.target.value);
+              if (sampleLoaded) setSampleLoaded(false);
+            }}
+            placeholder="Paste up to 300 words of English content you're planning to publish in another language."
+            className="mt-3 max-h-[400px] min-h-[140px] w-full resize-y rounded-xl border border-line bg-white p-5 text-[0.9375rem] leading-[1.6] text-pretty text-ink transition-shadow duration-300 outline-none placeholder:text-ink-muted/70 focus:border-st-blue focus:shadow-[0_0_0_3px_rgba(0,82,155,0.15)] sm:min-h-[180px]"
+          />
+
+          <p className="mt-3 text-pretty text-[13px] leading-[1.5] text-ink-muted">
+            Up to 300 words – enough for most marketing copy, product
+            descriptions, and technical content. Longer text? Request a full
+            review.
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="font-mono text-xs" style={{ color: counterColor }}>
+              {words} / {MAX_WORDS} words
+            </p>
+            <p className="text-xs text-ink-muted">
+              Nothing is stored. This is an AI preview only.
+            </p>
+          </div>
+
+          {overLimit && (
+            <p className="mt-2 text-[13px] font-semibold text-st-orange">
+              Please reduce to {MAX_WORDS} words or fewer to analyze.
+            </p>
+          )}
+        </section>
+
+        {/* ── 03 · LANGUAGE + ANALYZE ─────────────────────────── */}
+        <section className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <h2 className="step-label">
+              <span className="step-num">03</span>
+              Target language
+            </h2>
+
+            <LanguageCombobox value={language} onChange={setLanguage} />
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              disabled={!canAnalyze}
+              onClick={() => analyze()}
+              className="group inline-flex h-[52px] w-full min-w-[240px] items-center justify-center rounded-xl bg-st-blue px-7 text-[0.9375rem] font-semibold text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] enabled:hover:brightness-110 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+            >
+              {loading ? (
+                "Analyzing…"
+              ) : (
+                <>
+                  Analyze translation
+                  <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-200 group-enabled:group-hover:translate-x-1" />
+                </>
+              )}
+            </button>
+
+            {loading && (
+              <span className="shimmer-bar absolute inset-x-0 -bottom-2 h-0.5 overflow-hidden rounded-full" />
+            )}
+          </div>
+        </section>
+      </motion.div>
+
+      {/* Empty state — before anything has been analyzed. */}
+      {!reviewing && !result && (
+        <div className="mx-auto mt-6 flex max-w-5xl flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-white/60 px-6 py-16 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-st-blue/[0.07] text-st-blue">
+            <FileText className="h-6 w-6" />
+          </span>
+          <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-ink-muted">
+            Paste content above to see how AI compares to a real linguist review.
+          </p>
         </div>
-      </section>
+      )}
 
-    </div>
-
-    {/* Before any results exist the document is too short for the browser to
-        scroll the tool card up to its 80px anchor offset — the scroll clamps at
-        the page bottom and the card lands ~180px down instead. This tail gives
-        it the room; it disappears the moment real content takes its place. */}
-    {!reviewing && !result && <div aria-hidden className="h-[19rem]" />}
-
-    {/* The 20-second wait, staged as a review rather than a spinner. */}
-    <AnimatePresence mode="wait">
-      {reviewing ? (
-        <ReviewProgress
-          key="review"
-          language={language}
-          verticalLabel={activeVertical.label}
-          status={status}
-          error={error}
-          onSettled={settle}
-          onRetry={retry}
-        />
-      ) : result ? (
-        <Results
-          key="results"
-          analysis={result}
-          vertical={vertical}
-          verticalLabel={activeVertical.label}
-          language={language}
-          sourceText={lastRun.current.sourceText}
-          onReset={reset}
-        />
-      ) : null}
-    </AnimatePresence>
+      {/* The 20-second wait, staged as a review rather than a spinner. */}
+      <AnimatePresence mode="wait">
+        {reviewing ? (
+          <ReviewProgress
+            key="review"
+            language={language}
+            verticalLabel={activeVertical.label}
+            status={status}
+            error={error}
+            onSettled={settle}
+            onRetry={retry}
+          />
+        ) : result ? (
+          <Results
+            key="results"
+            analysis={result}
+            vertical={vertical}
+            verticalLabel={activeVertical.label}
+            language={language}
+            sourceText={lastRun.current.sourceText}
+            onReset={reset}
+          />
+        ) : null}
+      </AnimatePresence>
     </>
   );
 });

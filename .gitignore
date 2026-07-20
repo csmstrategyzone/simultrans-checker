@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local PDF render artifacts
+/report-hi-test.pdf
+/report-en-test.pdf

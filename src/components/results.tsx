@@ -1,57 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "framer-motion";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect, useState } from "react";
+import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
+import { Download, Loader2 } from "lucide-react";
 import type { Analysis, Issue } from "@/app/api/analyze/route";
 import { LeadForm } from "@/components/lead-form";
+import { WhatAiCannotCatch } from "@/components/what-ai-cannot-catch";
+import { ScoreMethodology } from "@/components/score-methodology";
+import { AiBadge } from "@/components/ai-badge";
 import type { VerticalId } from "@/components/tool-card";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+import { scoreBand } from "@/lib/content";
+import { countWords } from "@/lib/words";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const COUNT_EASE = [0.22, 1, 0.36, 1] as const;
-const SPRING = { type: "spring", stiffness: 300, damping: 20 } as const;
 
 const NEUTRAL = "#64748B";
 
-function band(score: number) {
-  if (score >= 85) return "#059669"; // sage
-  if (score >= 65) return "#F97316"; // sunset
-  return "#DC2626"; // ember
-}
-
-const SEVERITY_COLOR: Record<Issue["severity"], string> = {
-  Critical: "#DC2626",
-  High: "#F97316",
-  Medium: "#475569",
+// Severity — Red + Gold family (Margarita's warning/severity pairing).
+const SEVERITY_COLOR: Record<Issue["severity"], { bg: string; fg: string }> = {
+  Critical: { bg: "#DB5C3B", fg: "#FFFFFF" },
+  High: { bg: "#F7941D", fg: "#0F172A" },
+  Medium: { bg: "#FFC222", fg: "#0F172A" },
 };
 
+// Category — SimulTrans palette only.
 const CATEGORY_COLOR: Record<Issue["category"], string> = {
-  "Regulatory Risk": "#DC2626",
-  Terminology: "#1E3A8A",
-  "Cultural Fit": "#F97316",
-  "Brand Voice": "#7C3AED",
-  Ambiguity: "#475569",
+  "Regulatory Risk": "#DB5C3B",
+  Terminology: "#00529B",
+  "Cultural Fit": "#F7941D",
+  "Brand Voice": "#409A3C",
+  Ambiguity: "#64748B",
 };
 
-/* ── Score: counts up, and shifts from neutral grey into its band colour ── */
+/* ── Score: counts up, shifts from neutral grey into its band colour ── */
 function Score({ score }: { score: number }) {
   const reduced = useReducedMotion();
+  const band = scoreBand(score);
   const mv = useMotionValue(reduced ? score : 0);
   const [shown, setShown] = useState(reduced ? score : 0);
-  const target = band(score);
-
-  // Guard: a score of 0 would make the input range [0, 0], which can't interpolate.
-  const color = useTransform(mv, [0, Math.max(score, 1)], [NEUTRAL, target]);
 
   useEffect(() => {
     if (reduced) {
@@ -69,158 +56,49 @@ function Score({ score }: { score: number }) {
 
   return (
     <div className="flex items-baseline">
-      <motion.span
-        style={{ color: reduced ? target : color }}
-        className="tabular font-mono text-[88px] font-normal leading-none tracking-[-0.02em] sm:text-[128px]"
+      <span
+        style={{ color: shown === 0 ? NEUTRAL : band.color }}
+        className="tabular font-mono text-[88px] font-normal leading-none tracking-[-0.02em] transition-colors duration-300 sm:text-[112px]"
       >
         {shown}
-      </motion.span>
-      <span className="ml-1 font-mono text-[44px] leading-none text-ink-muted sm:text-[64px]">
+      </span>
+      <span className="ml-1 font-mono text-[40px] leading-none text-ink-muted sm:text-[56px]">
         /100
       </span>
     </div>
   );
 }
 
-/* ── The verdict: the one serif moment on the results ── */
-function Verdict({ text, delay }: { text: string; delay: number }) {
+function FlagCard({ issue, index }: { issue: Issue; index: number }) {
   const reduced = useReducedMotion();
-  const words = text.split(" ");
-
-  if (reduced) {
-    return (
-      <motion.blockquote
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-        className="voice text-pretty text-[26px] leading-[1.3] text-ink sm:text-[34px]"
-      >
-        &ldquo;{text}&rdquo;
-      </motion.blockquote>
-    );
-  }
-
-  return (
-    <blockquote className="voice text-pretty text-[26px] leading-[1.3] text-ink sm:text-[34px]">
-      <span aria-hidden>&ldquo;</span>
-      {words.map((w, i) => (
-        <motion.span
-          key={`${w}-${i}`}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE, delay: delay + i * 0.06 }}
-          className="inline-block"
-        >
-          {w}
-          {i < words.length - 1 && " "}
-        </motion.span>
-      ))}
-      <span aria-hidden>&rdquo;</span>
-    </blockquote>
-  );
-}
-
-function SeverityBadge({
-  severity,
-  lifted,
-}: {
-  severity: Issue["severity"];
-  lifted: boolean;
-}) {
-  const reduced = useReducedMotion();
-  const critical = severity === "Critical";
-  const [entered, setEntered] = useState(false);
-
-  return (
-    <motion.span
-      initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.8 }}
-      animate={
-        reduced
-          ? { opacity: 1 }
-          : {
-              opacity: 1,
-              // Critical badges pulse once on arrival; after that, scale is the
-              // hover affordance.
-              scale: entered
-                ? lifted
-                  ? 1.05
-                  : 1
-                : critical
-                  ? [1, 1.05, 1]
-                  : 1,
-            }
-      }
-      onAnimationComplete={() => setEntered(true)}
-      transition={
-        reduced
-          ? { duration: 0.3 }
-          : !entered && critical
-            ? {
-                opacity: SPRING,
-                scale: { duration: 0.4, delay: 0.25, times: [0, 0.5, 1] },
-              }
-            : SPRING
-      }
-      style={{ background: SEVERITY_COLOR[severity] }}
-      className="flag-badge rounded px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.06em] text-white"
-    >
-      {severity}
-    </motion.span>
-  );
-}
-
-/**
- * Hover is driven from React state, not CSS: Framer writes inline opacity and
- * transform on these cards, and Tailwind's border utility outranks our
- * component-layer rules, so a stylesheet hover would silently lose both fights.
- */
-function FlagCard({
-  issue,
-  index,
-  hovered,
-  dimmed,
-  onHover,
-}: {
-  issue: Issue;
-  index: number;
-  hovered: boolean;
-  dimmed: boolean;
-  onHover: (i: number | null) => void;
-}) {
-  const reduced = useReducedMotion();
+  const sev = SEVERITY_COLOR[issue.severity];
 
   return (
     <motion.article
-      onMouseEnter={() => onHover(index)}
-      onMouseLeave={() => onHover(null)}
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
-      animate={{
-        opacity: dimmed ? 0.65 : 1,
-        y: hovered && !reduced ? -2 : 0,
-        borderLeftWidth: hovered && !reduced ? 4 : 3,
-      }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{
         duration: 0.5,
         ease: EASE,
-        delay: reduced ? 0.1 : 0.8 + index * 0.12,
-        opacity: { duration: 0.2, ease: EASE },
-        y: { duration: 0.2, ease: EASE },
-        borderLeftWidth: { duration: 0.2, ease: EASE },
+        delay: reduced ? 0.05 : 0.4 + index * 0.1,
       }}
-      style={{
-        borderLeftColor: SEVERITY_COLOR[issue.severity],
-        borderLeftStyle: "solid",
-      }}
-      className="flag-card pl-5"
+      style={{ borderLeftColor: sev.bg }}
+      className="border-l-[3px] pl-5"
     >
       <div className="flex flex-wrap items-center gap-2.5">
-        <SeverityBadge severity={issue.severity} lifted={hovered} />
+        <span
+          style={{ background: sev.bg, color: sev.fg }}
+          className="rounded px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.06em]"
+        >
+          {issue.severity}
+        </span>
         <span
           style={{ color: CATEGORY_COLOR[issue.category] }}
           className="text-[11px] font-semibold uppercase tracking-[0.06em]"
         >
           {issue.category}
         </span>
+        <AiBadge />
       </div>
 
       <p className="mt-2.5 text-pretty text-[15px] font-medium leading-[1.5] text-ink">
@@ -238,7 +116,7 @@ function FlagCard({
         <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
           Fix
         </dt>
-        <dd className="text-pretty text-[13px] italic leading-[1.5] text-ink">
+        <dd className="text-pretty text-[13px] leading-[1.5] text-ink">
           {issue.fix}
         </dd>
       </dl>
@@ -262,136 +140,180 @@ export function Results({
   onReset: () => void;
 }) {
   const reduced = useReducedMotion();
-  const tone = band(analysis.score);
-  const scope = useRef<HTMLElement>(null);
-  const [hover, setHover] = useState<number | null>(null);
+  const band = scoreBand(analysis.score);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
 
-  // The CTA travels slightly faster than the page — it arrives rather than waits.
-  useGSAP(
-    () => {
-      if (reduced) return;
-      gsap.to(".cta-parallax", {
-        yPercent: -6,
-        ease: "none",
-        scrollTrigger: {
-          trigger: ".cta-parallax",
-          start: "top bottom",
-          end: "bottom bottom",
-          scrub: true,
-        },
+  const downloadPdf = async () => {
+    setDownloading(true);
+    setDownloadError(false);
+    try {
+      const res = await fetch("/api/report/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          analysis,
+          verticalLabel,
+          language,
+          sourceText,
+          wordCount: countWords(sourceText),
+        }),
       });
-    },
-    { scope, dependencies: [reduced] },
-  );
+      if (!res.ok) throw new Error("PDF generation failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "SimulTrans-AI-Preview-Report.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDownloadError(true);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <motion.section
-      ref={scope}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: EASE }}
       className="mx-auto mt-6 max-w-5xl"
     >
-      {/* ── 1. Score + verdict ─────────────────────────────── */}
+      {/* ── Header row: AI analysis label + PDF download ─────── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
+        <div className="flex items-center gap-2.5">
+          <h2
+            className="font-heading text-2xl text-ink"
+            style={{ fontWeight: 700 }}
+          >
+            AI Analysis
+          </h2>
+          <AiBadge />
+        </div>
+
+        <div className="flex flex-col items-end gap-1">
+          <button
+            type="button"
+            onClick={downloadPdf}
+            disabled={downloading}
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-st-blue px-5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+          >
+            {downloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            {downloading ? "Preparing…" : "Download PDF report"}
+          </button>
+          {downloadError && (
+            <span className="text-xs text-st-red">
+              Could not generate the PDF. Try again.
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Score + threshold band ─────────────────────────── */}
       <motion.div
         initial={reduced ? { opacity: 0 } : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: EASE }}
-        className="grid grid-cols-1 gap-10 border-b border-warm py-14 md:grid-cols-2 md:gap-12 md:py-16"
+        className="mt-6 grid grid-cols-1 gap-8 border-b border-line pb-12 md:grid-cols-[auto_1fr] md:gap-12"
       >
         <div>
-          <p className="eyebrow text-ink-muted">Linguist quality score</p>
-          <div className="mt-4">
+          <p className="eyebrow text-ink-muted">AI quality preview score</p>
+          <div className="mt-3">
             <Score score={analysis.score} />
           </div>
-          <span
-            style={{ background: `${tone}1a`, color: tone }}
-            className="mt-6 inline-block rounded-md px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em]"
+          <a
+            href="#score-methodology"
+            className="mt-3 inline-block text-[13px] font-medium text-st-blue underline-offset-2 hover:underline"
           >
-            {analysis.readiness}
-          </span>
+            How is this calculated?
+          </a>
         </div>
 
-        <div>
-          <p className="eyebrow text-ink-muted">Linguist&rsquo;s assessment</p>
-          <div className="mt-4">
-            <Verdict text={analysis.verdict} delay={0.4} />
+        <div className="flex items-center">
+          {/* Threshold band — always recommends a real linguist review. */}
+          <div
+            className="w-full rounded-xl p-5"
+            style={{ background: band.color, color: band.fg }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-80">
+              What this score means
+            </p>
+            <p className="mt-2 text-[17px] font-semibold leading-snug">
+              {band.label}
+            </p>
           </div>
         </div>
       </motion.div>
 
-      {/* ── 2. Split panel: machine output vs expert review ──
-          The left column is short and the right runs long. That imbalance IS the
-          pitch, so the machine output pins while you scroll the human review. */}
-      <div className="mt-10 grid grid-cols-1 items-start overflow-visible rounded-2xl border border-warm bg-paper lg:grid-cols-2">
+      {/* ── How the score is produced ───────────────────────── */}
+      <ScoreMethodology />
+
+      {/* ── Split panel: machine output vs AI preview of a review ── */}
+      <div className="mt-10 grid grid-cols-1 items-start overflow-hidden rounded-2xl border border-line bg-white lg:grid-cols-2">
         {/* Raw AI translation */}
         <motion.div
-          initial={reduced ? { opacity: 0 } : { opacity: 0, x: -20 }}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: EASE, delay: reduced ? 0.1 : 0.6 }}
-          className="border-b border-warm p-6 lg:sticky lg:top-24 lg:border-b-0 lg:border-r lg:p-8"
+          transition={{ duration: 0.5, ease: EASE, delay: reduced ? 0.05 : 0.3 }}
+          className="border-b border-line p-6 lg:border-b-0 lg:border-r lg:p-8"
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-ink-muted" />
-              <span className="eyebrow text-ink-muted">
-                Raw AI translation
-              </span>
-            </div>
-            <span className="eyebrow hidden text-ink-muted/50 lg:inline">
-              Reference
-            </span>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-muted" />
+            <span className="eyebrow text-ink-muted">Machine Review</span>
+            <AiBadge />
           </div>
+
+          <p className="mt-1.5 text-[12px] text-ink-muted">
+            Raw AI translation, unedited
+          </p>
 
           <p className="mt-5 whitespace-pre-wrap font-mono text-[14px] leading-[1.7] text-pretty text-ink-muted">
             {analysis.translation}
           </p>
 
-          <p className="mt-6 text-[11px] font-medium tracking-[0.02em] text-ink-muted/70">
+          <p className="mt-6 text-[11px] font-medium tracking-[0.01em] text-ink-muted/70">
             Unedited machine output · {language}
           </p>
         </motion.div>
 
-        {/* Mobile-only divider that sells the contrast */}
-        <div className="flex items-center justify-center gap-3 border-b border-warm bg-[#fffaf3] py-3 lg:hidden">
-          <span className="eyebrow text-fire">See expert review ↓</span>
-        </div>
-
-        {/* Expert review */}
+        {/* AI preview of a linguist review */}
         <motion.div
-          initial={reduced ? { opacity: 0 } : { opacity: 0, x: 20 }}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: EASE, delay: reduced ? 0.1 : 0.6 }}
+          transition={{ duration: 0.5, ease: EASE, delay: reduced ? 0.05 : 0.3 }}
           className="p-6 lg:p-8"
         >
-          <div className="flex items-center gap-2.5">
-            <span className="relative flex h-1.5 w-1.5">
-              {!reduced && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sunset opacity-70" />
-              )}
-              <span className="relative h-1.5 w-1.5 rounded-full bg-sunset" />
-            </span>
-            <span className="eyebrow text-fire">
-              Expert review · {analysis.issues.length} flags
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-st-blue" />
+            <span className="eyebrow text-st-blue">
+              AI Preview of a Linguist Review · {analysis.issues.length} flags
             </span>
           </div>
 
-          <div className="flag-list mt-6 space-y-6">
+          <p className="mt-1.5 text-[12px] text-ink-muted">
+            What a real SimulTrans linguist would look at, previewed by AI
+          </p>
+
+          <div className="mt-6 space-y-6">
             {analysis.issues.map((issue, i) => (
-              <FlagCard
-                key={i}
-                issue={issue}
-                index={i}
-                hovered={hover === i}
-                dimmed={hover !== null && hover !== i}
-                onHover={setHover}
-              />
+              <FlagCard key={i} issue={issue} index={i} />
             ))}
           </div>
         </motion.div>
       </div>
 
-      {/* ── 3. Lead capture ────────────────────────────────── */}
+      {/* ── What only a real linguist can catch ─────────────── */}
+      <WhatAiCannotCatch />
+
+      {/* ── Lead capture ────────────────────────────────────── */}
       <LeadForm
         vertical={vertical}
         verticalLabel={verticalLabel}

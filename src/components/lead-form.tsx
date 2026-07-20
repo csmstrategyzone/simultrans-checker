@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ArrowRight } from "lucide-react";
 import { LEAD_ROLES, LEAD_VOLUMES } from "@/app/api/lead/route";
 import type { VerticalId } from "@/components/tool-card";
 
@@ -22,14 +23,14 @@ const FormSchema = z.object({
 type FormValues = z.infer<typeof FormSchema>;
 
 const fieldClass =
-  "h-12 w-full rounded-xl border border-transparent bg-[#fdf6ea] px-4 text-[15px] text-ink outline-none transition-shadow duration-300 placeholder:text-ink-muted/60 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.35)]";
+  "h-12 w-full rounded-xl border border-transparent bg-white px-4 text-[15px] text-ink outline-none transition-shadow duration-300 placeholder:text-ink-muted/60 focus:shadow-[0_0_0_3px_rgba(255,194,34,0.5)]";
 
 const labelClass =
-  "mb-1.5 block text-[11px] font-semibold tracking-[0.02em] text-cream/70";
+  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.06em] text-white/70";
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
-  return <p className="mt-1.5 text-xs text-[#fdba74]">{msg}</p>;
+  return <p className="mt-1.5 text-xs font-medium text-st-gold">{msg}</p>;
 }
 
 export function LeadForm({
@@ -86,18 +87,11 @@ export function LeadForm({
 
   return (
     <motion.div
-      initial={
-        reduced
-          ? { opacity: 0 }
-          : { opacity: 0, y: 40, boxShadow: "0 0px 0px rgba(249,115,22,0)" }
-      }
-      animate={{
-        opacity: 1,
-        y: 0,
-        boxShadow: "0 20px 60px rgba(249,115,22,0.15)",
-      }}
-      transition={{ duration: 0.6, ease: EASE, delay: reduced ? 0.1 : 1.6 }}
-      className="cta-parallax mt-10 overflow-hidden rounded-[20px] border-t-2 border-sunset bg-royal p-8 sm:p-14"
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, ease: EASE }}
+      className="mt-10 overflow-hidden rounded-2xl bg-st-blue p-8 shadow-[0_20px_50px_-24px_rgba(0,82,155,0.6)] sm:p-14"
     >
       <AnimatePresence mode="wait">
         {submitted ? (
@@ -114,10 +108,10 @@ export function LeadForm({
               fill="none"
               aria-hidden
             >
-              <circle cx="26" cy="26" r="24" stroke="#059669" strokeWidth="2.5" />
+              <circle cx="26" cy="26" r="24" stroke="#60B070" strokeWidth="2.5" />
               <motion.path
                 d="M15 27l7.5 7.5L37 20"
-                stroke="#059669"
+                stroke="#60B070"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -127,12 +121,16 @@ export function LeadForm({
               />
             </svg>
 
-            <h3 className="voice mt-6 text-4xl text-cream">Thank you.</h3>
+            <h3
+              className="mt-6 font-heading text-4xl text-white"
+              style={{ fontWeight: 700 }}
+            >
+              Thank you.
+            </h3>
 
-            <p className="mx-auto mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-cream/80">
-              A certified {verticalLabel.toLowerCase()} linguist will reach out
-              to{" "}
-              <span className="font-medium text-cream">{submitted}</span> within
+            <p className="mx-auto mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-white/80">
+              A certified {verticalLabel.toLowerCase()} linguist will reach out to{" "}
+              <span className="font-medium text-white">{submitted}</span> within
               24 hours. Look for the subject line &ldquo;Your SimulTrans review
               plan.&rdquo;
             </p>
@@ -140,15 +138,10 @@ export function LeadForm({
             <button
               type="button"
               onClick={onReset}
-              className="group relative mt-7 min-h-[44px] text-sm font-medium text-sunset"
+              className="group mt-7 inline-flex min-h-[44px] items-center text-sm font-semibold text-st-gold hover:underline"
             >
-              <span className="relative">
-                Or run another analysis
-                <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-sunset transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100" />
-              </span>
-              <span className="ml-1 inline-block transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
+              Or run another analysis
+              <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
           </motion.div>
         ) : (
@@ -159,25 +152,26 @@ export function LeadForm({
           >
             {/* Pitch */}
             <div>
-              <p className="eyebrow text-sunset">
-                Ready for a certified review?
-              </p>
+              <p className="eyebrow text-st-gold">This is where AI stops.</p>
 
-              <h3 className="mt-4 text-[32px] font-bold leading-[1.15] tracking-[-0.02em] text-cream sm:text-[40px]">
-                Get this content{" "}
-                <span className="voice">reviewed by a real linguist.</span>
+              <h3
+                className="mt-4 font-heading text-[34px] leading-[1.05] text-white sm:text-[42px]"
+                style={{ fontWeight: 700 }}
+              >
+                Get this content reviewed by a real SimulTrans linguist.
               </h3>
 
-              <p className="mt-5 text-pretty text-[15px] leading-relaxed text-cream/80">
-                Tell us about your team. A specialist in{" "}
-                {verticalLabel.toLowerCase()} will be in touch within 24 hours
-                with a review plan and same-day quote.
+              <p className="mt-5 text-pretty text-[15px] leading-relaxed text-white/80">
+                The preview above is AI. A certified specialist in{" "}
+                {verticalLabel.toLowerCase()} will review your content against
+                everything AI cannot see, then be in touch within 24 hours with a
+                review plan and same-day quote.
               </p>
 
-              <p className="mt-6 text-[13px] font-medium text-cream/70">
-                ✓ ISO 17100 certified · No obligation · Response within 24 hours
+              <p className="mt-6 text-[13px] font-medium text-white/70">
+                ✓ No obligation · Response within 24 hours
               </p>
-              <p className="mt-1.5 text-[13px] font-medium text-cream/50">
+              <p className="mt-1.5 text-[13px] font-medium text-white/50">
                 40 years · Trusted by Aerogen, Wiley
               </p>
             </div>
@@ -286,7 +280,7 @@ export function LeadForm({
               <button
                 type="submit"
                 disabled={!isValid || isSubmitting}
-                className="group relative mt-6 h-[52px] w-full overflow-hidden rounded-xl bg-cream px-6 text-[15px] font-semibold text-royal transition enabled:hover:brightness-105 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="group relative mt-6 inline-flex h-[52px] w-full items-center justify-center overflow-hidden rounded-xl bg-white px-6 text-[15px] font-semibold text-st-blue transition enabled:hover:brightness-105 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
@@ -295,23 +289,21 @@ export function LeadForm({
                   </>
                 ) : (
                   <>
-                    Book a consultation
-                    <span className="ml-1.5 inline-block transition-transform duration-200 group-enabled:group-hover:translate-x-1">
-                      →
-                    </span>
+                    Request a SimulTrans linguist review
+                    <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-200 group-enabled:group-hover:translate-x-1" />
                   </>
                 )}
               </button>
 
               {serverError && (
-                <p className="mt-3 text-center text-xs text-[#fdba74]">
+                <p className="mt-3 text-center text-xs text-st-gold">
                   {serverError}
                 </p>
               )}
 
-              <p className="mt-4 text-pretty text-center text-[11px] font-medium leading-relaxed text-cream/60">
-                Nothing is shared publicly. GDPR compliant. You&rsquo;ll only
-                hear from a real person.
+              <p className="mt-4 text-pretty text-center text-[11px] font-medium leading-relaxed text-white/60">
+                Nothing is shared publicly. GDPR compliant. You&rsquo;ll only hear
+                from a real person.
               </p>
             </form>
           </motion.div>

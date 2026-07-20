@@ -1,34 +1,34 @@
 import type { Metadata } from "next";
-import { Inter_Tight, Playfair_Display, JetBrains_Mono } from "next/font/google";
-import { FluidCanvas } from "@/components/fluid-canvas";
-import { ScrollProgress } from "@/components/scroll-progress";
+import { Barlow_Condensed, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const interTight = Inter_Tight({
-  variable: "--font-inter-tight",
+// Headings — close free equivalent to ITC Franklin Gothic.
+const barlow = Barlow_Condensed({
+  variable: "--font-barlow",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["500", "600", "700", "800"],
 });
 
-// The linguist's voice ONLY: the word "meaning" and verdict quotes. Nowhere else.
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+// Body — close free equivalent to Myriad Pro.
+const sourceSans = Source_Sans_3({
+  variable: "--font-source-sans",
   subsets: ["latin"],
-  weight: ["400"],
-  style: ["italic"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+// Mono — scores and raw machine output only.
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "SimulTrans Checker — AI translates words. Linguists translate meaning.",
+  title: "SimulTrans Checker. AI translates words. Linguists translate meaning.",
   description:
-    "See what machine translation misses. Run any content through an ISO 17100-certified quality lens in 30 seconds.",
+    "Preview what an AI thinks of any translation. See what a real SimulTrans linguist would catch. Request a full review from our certified team.",
 };
 
 export default function RootLayout({
@@ -39,12 +39,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${interTight.variable} ${playfair.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${barlow.variable} ${sourceSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <ScrollProgress />
-        <FluidCanvas />
+      <body className="min-h-full flex flex-col bg-white">
         {children}
+        <SiteFooter />
         <Toaster position="bottom-right" />
       </body>
     </html>
