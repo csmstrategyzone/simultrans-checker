@@ -6,31 +6,27 @@ import { scrollToTool } from "@/lib/scroll";
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white/85 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        {/* Brand lockup — official SimulTrans logo mark, recolored to brand blue.
-            TODO: If Margarita prefers the typed wordmark she requested, swap the
-            Image below back for a text "SimulTrans" span. */}
-        <div className="flex flex-col justify-center">
-          <div className="flex items-center gap-2.5">
-            <Image
-              src="/simultrans-logo.svg"
-              alt="SimulTrans"
-              width={48}
-              height={36}
-              priority
-              className="h-9 w-auto"
-              style={{ height: "36px", width: "auto" }}
-            />
-            <span className="text-lg leading-none text-ink-muted">|</span>
-            <span
-              className="font-heading text-2xl leading-none text-ink-muted"
-              style={{ fontWeight: 500 }}
-            >
-              Checker
-            </span>
-          </div>
-          <span className="mt-1 hidden text-[10px] leading-none tracking-[0.15em] text-ink-muted sm:block">
-            your languages – your timeline
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
+        {/* Official SimulTrans lockup (mark + wordmark + rule + slogan) followed
+            by the Checker sub-brand. Margarita's rule: no changes to the logo,
+            so the lockup is rendered as-is and the slogan is no longer typed
+            separately — the artwork already contains it. Intrinsic width/height
+            match the SVG viewBox (396×108); display size is driven by `style`. */}
+        <div className="flex items-center gap-3">
+          <Image
+            src="/SimulTransLogo.svg"
+            alt="SimulTrans - your languages – your timeline"
+            width={396}
+            height={108}
+            priority
+            style={{ height: "48px", width: "auto" }}
+          />
+          <span className="text-xl leading-none text-ink-muted">|</span>
+          <span
+            className="font-heading text-2xl leading-none text-ink-muted"
+            style={{ fontWeight: 500 }}
+          >
+            Checker
           </span>
         </div>
 
