@@ -42,8 +42,8 @@ function face(file: string): string {
   return resolved;
 }
 
-export const HEADING_FONT = "BarlowCondensed";
-export const BODY_FONT = "SourceSans3";
+export const HEADING_FONT = "ITCFranklinGothic";
+export const BODY_FONT = "MyriadPro";
 export const MONO_FONT = "IBMPlexMono";
 export const LATIN_FALLBACK = "NotoSans";
 
@@ -83,24 +83,27 @@ export function registerBaseFonts() {
   if (baseRegistered) return;
 
   try {
-    // Headings. Static cuts, so these carry real weights.
+    // Headings. Official brand face (ITC Franklin Gothic), OTF read directly
+    // by fontkit. Book/Medium/Demi/Heavy give real 400/500/600/700 weights.
     Font.register({
       family: HEADING_FONT,
       fonts: [
-        { src: face("BarlowCondensed-Medium.ttf"), fontWeight: 500 },
-        { src: face("BarlowCondensed-SemiBold.ttf"), fontWeight: 600 },
-        { src: face("BarlowCondensed-Bold.ttf"), fontWeight: 700 },
+        { src: face("ITCFranklinGothicStd-Book.otf"), fontWeight: 400 },
+        { src: face("ITCFranklinGothicStd-Med.otf"), fontWeight: 500 },
+        { src: face("ITCFranklinGothicStd-Demi.otf"), fontWeight: 600 },
+        { src: face("ITCFranklinGothicStd-Hvy.otf"), fontWeight: 700 },
       ],
     });
 
-    // Body. Adobe's static TTFs rather than the Google variable build, so bold
-    // actually renders bold instead of collapsing to the default instance.
+    // Body. Official brand face (Myriad Pro). Regular/Semibold/Bold plus the
+    // dedicated italic so emphasis renders as a true italic, not a synthetic slant.
     Font.register({
       family: BODY_FONT,
       fonts: [
-        { src: face("SourceSans3-Regular.ttf"), fontWeight: 400 },
-        { src: face("SourceSans3-Semibold.ttf"), fontWeight: 600 },
-        { src: face("SourceSans3-Bold.ttf"), fontWeight: 700 },
+        { src: face("MyriadPro-Regular.otf"), fontWeight: 400 },
+        { src: face("MyriadPro-It.otf"), fontWeight: 400, fontStyle: "italic" },
+        { src: face("MyriadPro-Semibold.otf"), fontWeight: 600 },
+        { src: face("MyriadPro-Bold.otf"), fontWeight: 700 },
       ],
     });
 
