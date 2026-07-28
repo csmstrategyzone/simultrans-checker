@@ -122,7 +122,7 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
       setResult(data as Analysis);
       setStatus("done");
     } catch {
-      setError("Couldn't reach the analysis service. Check your connection.");
+      setError("Couldn’t reach the analysis service. Check your connection.");
       setStatus("error");
       setLoading(false);
     }
@@ -288,7 +288,7 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
               setSourceText(e.target.value);
               if (sampleLoaded) setSampleLoaded(false);
             }}
-            placeholder="Paste up to 300 words of English content you're planning to publish in another language."
+            placeholder="Paste up to 300 words of English content you’re planning to publish in another language."
             className="mt-3 max-h-[400px] min-h-[140px] w-full resize-y rounded-xl border border-line bg-white p-5 text-[0.9375rem] leading-[1.6] text-pretty text-ink transition-shadow duration-300 outline-none placeholder:text-ink-muted/70 focus:border-st-blue focus:shadow-[0_0_0_3px_rgba(0,82,155,0.15)] sm:min-h-[180px]"
           />
 

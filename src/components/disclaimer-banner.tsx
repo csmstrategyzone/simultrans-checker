@@ -16,8 +16,8 @@ export function DisclaimerBanner() {
     <>
       <div style={{ background: "#68AEE0" }}>
         <div className="mx-auto flex max-w-6xl items-start gap-3 px-6 py-3 sm:items-center">
-          <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#0a2540] sm:mt-0" />
-          <p className="flex-1 text-[13px] leading-snug text-[#0a2540] sm:text-[13.5px]">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#00529B] sm:mt-0" />
+          <p className="flex-1 text-[13px] leading-snug text-[#00529B] sm:text-[13.5px]">
             <span className="font-semibold">
               This is an AI-powered translation preview, not a certified linguist
               review.
@@ -28,7 +28,7 @@ export function DisclaimerBanner() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="shrink-0 whitespace-nowrap text-[13px] font-semibold text-[#0a2540] underline underline-offset-2 transition-opacity hover:opacity-70"
+            className="shrink-0 whitespace-nowrap text-[13px] font-semibold text-[#00529B] underline underline-offset-2 transition-opacity hover:opacity-70"
           >
             Learn more
           </button>

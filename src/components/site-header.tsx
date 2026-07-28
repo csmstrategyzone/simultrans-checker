@@ -11,19 +11,31 @@ export function SiteHeader() {
             by the Checker sub-brand. Margarita's rule: no changes to the logo,
             so the lockup is rendered as-is and the slogan is no longer typed
             separately — the artwork already contains it. Intrinsic width/height
-            match the SVG viewBox (396×108); display size is driven by `style`. */}
-        <div className="flex items-center gap-3">
+            match the SVG viewBox (396×108); display size is driven by `style`.
+
+            shrink-0 + objectFit:contain keep the lockup at its true aspect ratio:
+            without them the flex layout compresses it horizontally below ~330px.
+            "| Checker" is hidden under sm because the CTA would otherwise paint
+            straight over it; the lockup alone still carries the identity.
+
+            The wrapper needs shrink-0 as well: with only the image marked
+            shrink-0 the wrapper still collapsed, and a width:auto replaced
+            element follows its parent down, so the lockup shrank anyway. */}
+        <div className="flex shrink-0 items-center gap-3">
           <Image
             src="/SimulTransLogo.svg"
-            alt="SimulTrans - your languages – your timeline"
+            alt="SimulTrans"
             width={396}
             height={108}
             priority
-            style={{ height: "48px", width: "auto" }}
+            className="shrink-0"
+            style={{ height: "48px", width: "auto", objectFit: "contain" }}
           />
-          <span className="text-xl leading-none text-ink-muted">|</span>
+          <span className="hidden text-xl leading-none text-ink-muted sm:inline">
+            |
+          </span>
           <span
-            className="font-heading text-2xl leading-none text-ink-muted"
+            className="hidden font-heading text-2xl leading-none text-ink-muted sm:inline"
             style={{ fontWeight: 500 }}
           >
             Checker
