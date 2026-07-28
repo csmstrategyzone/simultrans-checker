@@ -81,7 +81,7 @@ export function LeadForm({
       }
       setSubmitted(values.email);
     } catch {
-      setServerError("Couldn't reach the server. Try again.");
+      setServerError("Couldn’t reach the server. Try again.");
     }
   };
 

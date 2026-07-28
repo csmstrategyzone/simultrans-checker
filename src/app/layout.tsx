@@ -1,22 +1,13 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-// Headings — close free equivalent to ITC Franklin Gothic.
-const barlow = Barlow_Condensed({
-  variable: "--font-barlow",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-});
-
-// Body — close free equivalent to Myriad Pro.
-const sourceSans = Source_Sans_3({
-  variable: "--font-source-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
+// Headings (ITC Franklin Gothic) and body (Myriad Pro) are the official brand
+// faces, self-hosted from /public/fonts via @font-face in globals.css. They were
+// previously shadowed by Barlow Condensed / Source Sans 3 loaded from Google
+// Fonts; those stand-ins are gone, so nothing competes with the real faces.
 
 // Mono — scores and raw machine output only.
 const plexMono = IBM_Plex_Mono({
@@ -39,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${barlow.variable} ${sourceSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white">
         {children}

@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
   //   a lost lead is worse than a slow one.
 
   return NextResponse.json(
-    { ok: true, message: "Thanks. We'll be in touch." },
+    { ok: true, message: "Thanks. We’ll be in touch." },
     { status: 200 },
   );
 }

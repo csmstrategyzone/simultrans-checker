@@ -220,7 +220,7 @@ Every issue must be fully written and genuine. NEVER emit filler text such as "p
 
 STYLE RULE: Do not use em dashes (—) anywhere in your output. Use commas or periods instead. Do not use the ampersand "&"; write "and".
 
-LANGUAGE RULE – this matters: the "translation" field is the ONLY field written in ${language}. The verdict, and every issue's problem, impact, and fix, must be written in ENGLISH for an English-speaking client, quoting the specific ${language} terms inline where relevant.
+LANGUAGE RULE. This matters: the "translation" field is the ONLY field written in ${language}. The verdict, and every issue's problem, impact, and fix, must be written in ENGLISH for an English-speaking client, quoting the specific ${language} terms inline where relevant.
 
 The verdict must be ONE sentence, maximum 30 words, it is displayed as a large pull quote, so length matters. It should read as a certified linguist would speak it, direct, professional, specific. The impact of each issue must be a concrete business consequence (regulatory delay, brand damage, compliance risk, conversion loss). The fix must be what a certified linguist would do instead, specific and actionable.`;
 

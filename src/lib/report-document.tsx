@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   body: { paddingHorizontal: 40, paddingTop: 20 },
   disclaimer: {
-    backgroundColor: "#EAF3FB",
+    backgroundColor: SURFACE,
     borderLeftWidth: 3,
     borderLeftColor: BLUE,
     padding: 10,

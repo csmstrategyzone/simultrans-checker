@@ -6,7 +6,8 @@
    Official SimulTrans brand typefaces, self-hosted from public/fonts.
    Franklin Gothic = headings, Myriad Pro = body. Placed after all @import
    rules (CSS requires imports first) so the two above stay valid.
-   Barlow Condensed / Source Sans 3 remain in the @theme fallback chains below.
+   These are the only brand faces; "Barlow Condensed" survives only as a bare
+   local-font fallback name in the heading chains below.
 --------------------------------------------------------------------------- */
 @font-face {
   font-family: "ITC Franklin Gothic";
@@ -69,7 +70,7 @@
    SimulTrans Checker — official SimulTrans brand system.
    Clean, calm, enterprise. White base, SimulTrans blue authority, green human.
    Palette is fixed: blue, light blue, green, light green, red, orange, gold.
-   No other colors. No gradients that invent new shades.
+   No other colors. No gradients.
 --------------------------------------------------------------------------- */
 
 :root {
@@ -132,8 +133,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-sans: "Myriad Pro", var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "ITC Franklin Gothic", var(--font-barlow), "Barlow Condensed", ui-sans-serif, sans-serif;
+  --font-sans: "Myriad Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "ITC Franklin Gothic", "Barlow Condensed", ui-sans-serif, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   /* Brand tokens exposed as utilities: bg-st-blue, text-st-green, border-line, ... */
@@ -208,7 +209,7 @@
   }
 
   h1, h2, h3, h4 {
-    font-family: var(--font-barlow), "Barlow Condensed", ui-sans-serif, sans-serif;
+    font-family: "ITC Franklin Gothic", "Barlow Condensed", ui-sans-serif, sans-serif;
   }
 
   ::selection {
@@ -239,9 +240,9 @@
 }
 
 @layer components {
-  /* Headline type — Barlow Condensed, tight and confident. */
+  /* Headline type — Franklin Gothic, tight and confident. */
   .hero-type {
-    font-family: var(--font-barlow), "Barlow Condensed", sans-serif;
+    font-family: "ITC Franklin Gothic", "Barlow Condensed", sans-serif;
     font-weight: 700;
     letter-spacing: -0.01em;
     line-height: 1.02;
@@ -253,7 +254,7 @@
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
-    font-family: var(--font-barlow), "Barlow Condensed", sans-serif;
+    font-family: "ITC Franklin Gothic", "Barlow Condensed", sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
     letter-spacing: 0;
@@ -268,7 +269,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Section eyebrows — Source Sans, uppercase, letter-spaced. */
+  /* Section eyebrows — body face, uppercase, letter-spaced. */
   .eyebrow {
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -299,25 +300,19 @@
     }
   }
 
-  /* Loading bar under the Analyze button — SimulTrans blue → green sweep. */
+  /* Loading bar under the Analyze button — solid SimulTrans blue, opacity pulse.
+     No gradient: the brand guide bans them outright. */
   .shimmer-bar {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--st-blue),
-      var(--st-green),
-      transparent
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.4s linear infinite;
+    background: var(--st-blue);
+    animation: pulse-shimmer 1.5s ease-in-out infinite;
   }
 
-  @keyframes shimmer {
-    from {
-      background-position: 200% 0;
+  @keyframes pulse-shimmer {
+    0%, 100% {
+      opacity: 0.3;
     }
-    to {
-      background-position: -200% 0;
+    50% {
+      opacity: 1;
     }
   }
 
