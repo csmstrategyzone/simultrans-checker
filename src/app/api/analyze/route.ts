@@ -32,7 +32,6 @@ const IssueSchema = z.object({
   severity: z.enum(["Critical", "High", "Medium"]),
   problem: z.string(),
   impact: z.string(),
-  fix: z.string(),
 });
 
 // The model has been observed padding the tail of the issues array with the
@@ -42,7 +41,7 @@ const IssueSchema = z.object({
 const FILLER = /\b(placeholder|lorem ipsum|todo|tbd|n\/a)\b/i;
 
 const isFiller = (i: z.infer<typeof IssueSchema>) =>
-  FILLER.test(i.problem) || FILLER.test(i.impact) || FILLER.test(i.fix);
+  FILLER.test(i.problem) || FILLER.test(i.impact);
 
 const AnalysisSchema = z.object({
   translation: z.string().min(1),
@@ -53,11 +52,10 @@ const AnalysisSchema = z.object({
     "Needs expert review before publishing",
     "Ready with minor edits",
   ]),
-  issues: z
-    .array(IssueSchema)
-    // Filler is stripped before we get here; if fewer than 2 genuine issues
-    // survive, the analysis isn't worth showing.
-    .min(2, "fewer than 2 genuine issues after stripping filler"),
+  // No floor. Genuinely publication-ready content should be able to come back
+  // with zero flags and a 90+ score — a minimum here would force the model to
+  // manufacture problems and would cap the top two score bands permanently.
+  issues: z.array(IssueSchema),
 });
 
 export type Analysis = z.infer<typeof AnalysisSchema>;
@@ -123,9 +121,8 @@ const OUTPUT_SCHEMA = {
           },
           problem: { type: "string" },
           impact: { type: "string" },
-          fix: { type: "string" },
         },
-        required: ["category", "severity", "problem", "impact", "fix"],
+        required: ["category", "severity", "problem", "impact"],
         additionalProperties: false,
       },
     },
@@ -133,6 +130,87 @@ const OUTPUT_SCHEMA = {
   required: ["translation", "score", "verdict", "readiness", "issues"],
   additionalProperties: false,
 } as const;
+
+const PRIMARY_MODEL = "claude-sonnet-5";
+
+// Safety classifiers occasionally decline legitimate medical and regulatory
+// source text — including the hardcoded sample behind "See a sample report".
+// A refusal is a 200 with stop_reason "refusal", not an exception, so it has to
+// be checked explicitly. Opus 4.6 is the safety net; verified to accept this
+// exact request shape (thinking disabled + structured outputs).
+const FALLBACK_MODEL = "claude-opus-4-6";
+
+// Prepended to the system prompt on the fallback attempt ONLY. The first
+// attempt always runs the untouched primary prompt.
+const FALLBACK_PREAMBLE = `You are reviewing professional translation quality for a certified localization firm. The content may include medical, legal, or regulatory material — this is legitimate professional review, not creation of harmful content. Assess the translation quality without refusing based on content category.`;
+
+type Generation =
+  | { ok: true; raw: string }
+  | { ok: false; kind: "refusal" | "max_tokens" | "error" };
+
+/** Some policy declines surface as a thrown 400 rather than a refusal stop_reason. */
+function isPolicyError(err: unknown): boolean {
+  const e = err as { status?: number; message?: string };
+  if (e?.status !== 400) return false;
+  return /refus|policy|safety|content[_ -]?filter/i.test(e.message ?? "");
+}
+
+async function generate(
+  anthropic: Anthropic,
+  model: string,
+  system: string,
+  userPrompt: string,
+): Promise<Generation> {
+  try {
+    const message = await anthropic.messages.create({
+      model,
+      // Generous headroom. Under structured outputs the decoder MUST emit valid
+      // JSON, so a run that approaches the ceiling pads its trailing fields with
+      // filler ("placeholder") rather than truncating — which renders as a real
+      // but empty flag card. Budget is cheaper than a hollow result on stage.
+      max_tokens: 8000,
+      // Sonnet 5 runs adaptive thinking when `thinking` is omitted, and thinking
+      // tokens count against max_tokens. Off keeps the demo fast and the budget
+      // entirely available for the JSON.
+      thinking: { type: "disabled" },
+      system,
+      messages: [{ role: "user", content: userPrompt }],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: OUTPUT_SCHEMA,
+        },
+      },
+    });
+
+    if (message.stop_reason === "refusal") {
+      console.error(`[analyze] ${model} refused`, message.stop_details);
+      return { ok: false, kind: "refusal" };
+    }
+
+    // Hitting the ceiling means the JSON was closed under pressure and the tail
+    // fields are filler. Fail loudly rather than render hollow flag cards.
+    if (message.stop_reason === "max_tokens") {
+      console.error(`[analyze] ${model} hit max_tokens`, message.usage);
+      return { ok: false, kind: "max_tokens" };
+    }
+
+    return {
+      ok: true,
+      raw: message.content
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join(""),
+    };
+  } catch (err) {
+    if (isPolicyError(err)) {
+      console.error(`[analyze] ${model} policy error:`, err);
+      return { ok: false, kind: "refusal" };
+    }
+    console.error(`[analyze] ${model} API error:`, err);
+    return { ok: false, kind: "error" };
+  }
+}
 
 // Naive in-memory limiter — resets on every server restart, and is per-instance.
 // Replace with a shared store before this goes anywhere real.
@@ -205,8 +283,8 @@ export async function POST(req: NextRequest) {
   const userPrompt = `Analyze this English source content and produce a rigorous linguist review.
 
 Task:
-1. Produce a plausible raw AI machine translation into ${language}, the kind of output a general-purpose LLM would generate. It should be grammatically correct but subtly flawed in ways a specialist would immediately catch (wrong industry term, register mismatch, cultural miss, ambiguity).
-2. Identify 3 to 5 SPECIFIC issues a certified ${meta.label} linguist would flag in that translation. Each issue must reference actual terms, structures, or cultural conventions in ${language}, not generic complaints.
+1. Produce a plausible raw AI-generated translation into ${language}, the kind of output a general-purpose LLM would generate. It should be grammatically correct but subtly flawed in ways a specialist would immediately catch (wrong industry term, register mismatch, cultural miss, ambiguity).
+2. Identify 0 to 5 SPECIFIC issues in the translation. If the translation is genuinely publication-ready with no real issues worth flagging, return zero issues and score it 90+. Do not manufacture concerns to fill the range. Only flag issues a certified linguist would legitimately raise. Each issue must reference actual terms, structures, or cultural conventions in ${language}, not generic complaints.
 3. Assign an overall quality score from 0 to 100.
 
 Industry context: ${meta.context}
@@ -216,75 +294,82 @@ Source content:
 ${sourceText}
 """
 
-Every issue must be fully written and genuine. NEVER emit filler text such as "placeholder", "TBD", or "N/A" in any field. If you can only find three real issues, return exactly three rather than padding the list.
+SCORING RUBRIC. Assign the overall score from 0 to 100 based on how much a certified linguist would need to change. Anchor your score against these bands:
+
+90-100: Publication-ready. Minor polish only. No critical or high-severity issues in any of the five dimensions (Regulatory Risk, Terminology, Cultural Fit, Brand Voice, Ambiguity).
+
+75-89: Usable with light review. A few medium-severity issues across the five dimensions. No critical issues. No high-severity issues in Regulatory Risk or Terminology.
+
+60-74: Significant issues. Multiple high-severity issues, OR one critical issue in a lower-stakes dimension (Style, Ambiguity). Linguist review strongly recommended.
+
+40-59: Substantial rework. Any critical issue in Regulatory Risk or Terminology, OR many high-severity issues across dimensions, OR the translation reads as unfluent, unnatural, or word-for-word rather than idiomatic in the target language.
+
+Below 40: Fundamental problems. Meaning distorted, terminology consistently wrong, or the translation would confuse or mislead the target audience.
+
+Do not default to the mid-band. Calibrate the score to the specific issues you found. If the translation is genuinely publication-ready with no real issues, score 90+. If it is deeply flawed, score below 40. Reserve 55-60 for translations that genuinely have significant issues but are recoverable with edits.
+
+Every issue must be fully written and genuine. NEVER emit filler text such as "placeholder", "TBD", or "N/A" in any field. Return only the issues you actually found, even if that is one or none, rather than padding the list.
 
 STYLE RULE: Do not use em dashes (—) anywhere in your output. Use commas or periods instead. Do not use the ampersand "&"; write "and".
 
-LANGUAGE RULE. This matters: the "translation" field is the ONLY field written in ${language}. The verdict, and every issue's problem, impact, and fix, must be written in ENGLISH for an English-speaking client, quoting the specific ${language} terms inline where relevant.
+LANGUAGE RULE. This matters: the "translation" field is the ONLY field written in ${language}. The verdict, and every issue's problem and impact, must be written in ENGLISH for an English-speaking client, quoting the specific ${language} terms inline where relevant.
 
-The verdict must be ONE sentence, maximum 30 words, it is displayed as a large pull quote, so length matters. It should read as a certified linguist would speak it, direct, professional, specific. The impact of each issue must be a concrete business consequence (regulatory delay, brand damage, compliance risk, conversion loss). The fix must be what a certified linguist would do instead, specific and actionable.`;
+Each issue has exactly two written fields, problem and impact. Do NOT propose, describe, or hint at the corrected wording, and do not add any field beyond the schema. Name what is wrong and what it costs, nothing more.
+
+The verdict must be ONE sentence, maximum 30 words, it is displayed as a large pull quote, so length matters. It should read as a certified linguist would speak it, direct, professional, specific. The impact of each issue must be a concrete business consequence (regulatory delay, brand damage, compliance risk, conversion loss).`;
 
   const anthropic = new Anthropic({ apiKey });
 
-  // A single bad generation (filler issues, too few issues) must never reach the
-  // screen, so give it one more go before surfacing an error.
+  // A single bad generation (filler issues, unparseable JSON) must never reach
+  // the screen, so give it one more go before surfacing an error.
   for (let attempt = 1; attempt <= 2; attempt++) {
-  let raw: string;
-  try {
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-5",
-      // Generous headroom. Under structured outputs the decoder MUST emit valid
-      // JSON, so a run that approaches the ceiling pads its trailing fields with
-      // filler ("placeholder") rather than truncating — which renders as a real
-      // but empty flag card. Budget is cheaper than a hollow result on stage.
-      max_tokens: 8000,
-      // Sonnet 5 runs adaptive thinking when `thinking` is omitted, and thinking
-      // tokens count against max_tokens. Off keeps the demo fast and the budget
-      // entirely available for the JSON.
-      thinking: { type: "disabled" },
-      system,
-      messages: [{ role: "user", content: userPrompt }],
-      output_config: {
-        format: {
-          type: "json_schema",
-          schema: OUTPUT_SCHEMA,
-        },
-      },
-    });
+  // Primary first, always with the untouched system prompt.
+  let gen = await generate(anthropic, PRIMARY_MODEL, system, userPrompt);
 
-    if (message.stop_reason === "refusal") {
-      console.error("[analyze] model refused", message.stop_details);
-      return NextResponse.json(
-        { error: "Analysis format invalid, try again" },
-        { status: 502 },
-      );
-    }
-
-    // Hitting the ceiling means the JSON was closed under pressure and the tail
-    // fields are filler. Fail loudly rather than render hollow flag cards.
-    if (message.stop_reason === "max_tokens") {
-      console.error("[analyze] hit max_tokens — output would be padded", message.usage);
-      return NextResponse.json(
-        { error: "Analysis format invalid, try again" },
-        { status: 502 },
-      );
-    }
-
-    raw = message.content
-      .filter((b) => b.type === "text")
-      .map((b) => b.text)
-      .join("");
-  } catch (err) {
-    console.error("[analyze] Anthropic API error:", err);
-    return NextResponse.json(
-      { error: "Analysis service unavailable" },
-      { status: 500 },
+  // Safety net: a refusal is retried once on the fallback model with a softened
+  // system prompt. Only the refusal path falls back — a max_tokens or transport
+  // failure is not a policy problem and re-running it on a second model would
+  // just double the latency.
+  if (!gen.ok && gen.kind === "refusal") {
+    console.warn(
+      `[analyze] ${PRIMARY_MODEL} refused, retrying on ${FALLBACK_MODEL}`,
     );
+    gen = await generate(
+      anthropic,
+      FALLBACK_MODEL,
+      `${FALLBACK_PREAMBLE}\n\n${system}`,
+      userPrompt,
+    );
+
+    if (!gen.ok && gen.kind === "refusal") {
+      console.error(
+        `[analyze] both ${PRIMARY_MODEL} and ${FALLBACK_MODEL} refused — giving up`,
+      );
+      return NextResponse.json(
+        {
+          error:
+            "This content couldn’t be analyzed. Please try a different sample.",
+        },
+        { status: 422 },
+      );
+    }
+  }
+
+  if (!gen.ok) {
+    return gen.kind === "max_tokens"
+      ? NextResponse.json(
+          { error: "Analysis format invalid, try again" },
+          { status: 502 },
+        )
+      : NextResponse.json(
+          { error: "Analysis service unavailable" },
+          { status: 500 },
+        );
   }
 
   // Structured outputs should make this unnecessary, but a fenced or prose-wrapped
   // response would otherwise take down the whole demo.
-  const cleaned = raw
+  const cleaned = gen.raw
     .trim()
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")

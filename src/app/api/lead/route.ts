@@ -1,30 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-const ROLES = [
-  "Marketing",
-  "Localization",
-  "Product",
-  "Legal",
-  "Regulatory",
-  "Engineering",
-  "Founder",
-  "Other",
-] as const;
-
-const VOLUMES = [
-  "Under 10K words/month",
-  "10K–100K words/month",
-  "100K+ words/month",
-  "Not sure yet",
-] as const;
-
 export const LeadSchema = z.object({
   email: z.string().email("Enter a valid work email"),
   name: z.string().trim().min(2, "Enter your full name"),
   company: z.string().trim().min(2, "Enter your company"),
-  role: z.enum(ROLES, { message: "Select your role" }),
-  volume: z.enum(VOLUMES).optional(),
   challenge: z.string().max(2000).optional(),
 
   // Analysis context, so the account manager opens the thread already informed.
@@ -40,8 +20,6 @@ export const LeadSchema = z.object({
 });
 
 export type LeadInput = z.infer<typeof LeadSchema>;
-export const LEAD_ROLES = ROLES;
-export const LEAD_VOLUMES = VOLUMES;
 
 const RATE_LIMIT = 20;
 const WINDOW_MS = 60_000;
@@ -95,7 +73,7 @@ export async function POST(req: NextRequest) {
   // TODO: wire HubSpot Contacts API here.
   //   POST https://api.hubapi.com/crm/v3/objects/contacts
   //   Authorization: Bearer ${process.env.HUBSPOT_TOKEN}
-  //   properties: { email, firstname, lastname, company, jobtitle,
+  //   properties: { email, firstname, lastname, company,
   //                 st_score, st_readiness, st_vertical, st_language }
   //   Failures here must NOT surface to the user — queue and retry instead;
   //   a lost lead is worse than a slow one.

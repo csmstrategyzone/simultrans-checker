@@ -24,8 +24,8 @@ export default function Home() {
       <DisclaimerBanner />
       <main className="flex-1">
         <Hero onRunCheck={scrollToTool} onSampleReport={runSampleReport} />
-        <HowItWorks />
         <TrustBar />
+        <HowItWorks />
 
         <div className="bg-surface px-6 py-20">
           <ToolCard ref={tool} />

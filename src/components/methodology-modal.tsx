@@ -93,7 +93,7 @@ export function MethodologyModal({
                   <div>
                     <p className="font-semibold text-ink">AI drafts a preview</p>
                     <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">
-                      A large language model generates a machine translation and
+                      A large language model generates a translation and
                       flags issues it can detect, such as terminology, register,
                       and ambiguity.
                     </p>

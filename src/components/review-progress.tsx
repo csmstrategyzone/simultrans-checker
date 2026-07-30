@@ -29,7 +29,7 @@ export function ReviewProgress({
 
   const steps = [
     "Parsing source content and identifying subject vertical",
-    `Producing a baseline machine translation into ${language}`,
+    `Producing a baseline AI translation into ${language}`,
     "Comparing against a professional quality rubric",
     "Flagging regulatory register and terminology risks",
     "Checking cultural fit and brand voice signals",

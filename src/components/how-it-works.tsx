@@ -21,7 +21,7 @@ const STEPS: {
     n: "2",
     icon: Sparkles,
     title: "AI analyzes the translation",
-    body: "Our AI drafts a machine translation and previews the issues it can detect.",
+    body: "Our AI drafts a translation and previews the issues it can detect.",
     tone: "orange",
   },
   {

@@ -8,7 +8,12 @@
  * The five dimensions below mirror the `category` enum in /api/analyze, and the
  * severity labels mirror SEVERITY_COLOR in results.tsx. If either list changes,
  * change this copy with it.
+ *
+ * The score bands are rendered from SCORE_BANDS in lib/content.ts — the same
+ * source the results banner and the PDF read — so the published thresholds can
+ * never drift from the ones actually applied.
  */
+import { SCORE_BANDS } from "@/lib/content";
 
 const DIMENSIONS = [
   {
@@ -73,8 +78,31 @@ export function ScoreMethodology() {
       <p className="mt-5 max-w-[70ch] text-pretty text-[15px] leading-[1.6] text-ink">
         The AI produces a single overall score from 0 to 100 based on these
         dimensions, and flags individual issues with severity (Critical, High,
-        Medium).
+        Medium). The score reflects how much a certified linguist would need to
+        change:
       </p>
+
+      <ul className="mt-4 space-y-2">
+        {SCORE_BANDS.map((b, i) => {
+          const next = SCORE_BANDS[i - 1];
+          const range = next ? `${b.min}–${next.min - 1}` : `${b.min}+`;
+          return (
+            <li key={b.name} className="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="h-3 w-3 shrink-0 rounded-full"
+                style={{ background: b.color }}
+              />
+              <span className="w-[68px] shrink-0 font-mono text-[13px] tabular-nums text-ink-muted">
+                {range}
+              </span>
+              <span className="text-pretty text-[15px] leading-[1.5] text-ink">
+                {b.name}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
 
       <p className="mt-4 max-w-[70ch] text-pretty text-[15px] leading-[1.6] text-ink-muted">
         This is an AI preview. A certified SimulTrans linguist would identify

@@ -227,12 +227,9 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="mx-auto max-w-5xl scroll-mt-24 rounded-2xl border border-line bg-white p-6 shadow-[0_10px_40px_-24px_rgba(15,23,42,0.25)] sm:p-12"
       >
-        {/* ── 01 CONTENT TYPE ─────────────────────────────────── */}
+        {/* ── CONTENT TYPE ────────────────────────────────────── */}
         <section>
-          <h2 className="step-label">
-            <span className="step-num">01</span>
-            Choose your content type
-          </h2>
+          <h2 className="step-label">Choose your content type</h2>
 
           <div
             role="radiogroup"
@@ -253,13 +250,10 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
           </div>
         </section>
 
-        {/* ── 02 · SOURCE CONTENT ─────────────────────────────── */}
+        {/* ── SOURCE CONTENT ──────────────────────────────────── */}
         <section className="mt-10">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="step-label">
-              <span className="step-num">02</span>
-              Paste English source content
-            </h2>
+            <h2 className="step-label">Paste English source content</h2>
 
             <button
               type="button"
@@ -314,13 +308,10 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
           )}
         </section>
 
-        {/* ── 03 · LANGUAGE + ANALYZE ─────────────────────────── */}
+        {/* ── LANGUAGE + ANALYZE ──────────────────────────────── */}
         <section className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <h2 className="step-label">
-              <span className="step-num">03</span>
-              Target language
-            </h2>
+            <h2 className="step-label">Target language</h2>
 
             <LanguageCombobox value={language} onChange={setLanguage} />
           </div>

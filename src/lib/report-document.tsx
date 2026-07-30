@@ -29,7 +29,6 @@ export type ReportData = {
       severity: string;
       problem: string;
       impact: string;
-      fix: string;
     }[];
   };
   verticalLabel: string;
@@ -182,7 +181,6 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   metaLine: { fontSize: 9, color: MUTED, marginBottom: 1.5 },
-  fixLine: { fontSize: 9, color: INK, marginBottom: 1.5 },
   catchItem: { flexDirection: "row", marginBottom: 5 },
   catchDot: {
     color: ORANGE,
@@ -306,9 +304,9 @@ export function ReportDocument({ data }: { data: ReportData }) {
             <Text style={{ fontFamily: monoStack }}>{data.sourceText}</Text>
           </View>
 
-          {/* Machine translation */}
+          {/* AI-generated translation */}
           <Text style={styles.sectionTitle}>
-            AI machine translation ({data.language})
+            AI-generated translation ({data.language})
           </Text>
           <View style={styles.contentBox}>
             <Text style={{ fontFamily: scriptStack }}>
@@ -316,10 +314,19 @@ export function ReportDocument({ data }: { data: ReportData }) {
             </Text>
           </View>
 
-          {/* AI preview of a linguist review */}
+          {/* Flags — heading matches the web results page verbatim. */}
           <Text style={styles.sectionTitle}>
-            AI preview of a linguist review ({analysis.issues.length} flags)
+            {analysis.issues.length > 0
+              ? `${analysis.issues.length} Flags of what a SimulTrans’ linguist would look at`
+              : "What a SimulTrans’ linguist would look at"}
           </Text>
+          {analysis.issues.length === 0 && (
+            <Text style={[styles.metaLine, { fontFamily: bodyStack }]}>
+              The AI did not flag any issues in this translation. A certified
+              linguist still checks brand voice, glossary consistency, and
+              regulatory context that AI cannot see.
+            </Text>
+          )}
           {analysis.issues.map((issue, i) => {
             const sev = SEVERITY[issue.severity] ?? SEVERITY.Medium;
             return (
@@ -338,9 +345,6 @@ export function ReportDocument({ data }: { data: ReportData }) {
                 </Text>
                 <Text style={[styles.metaLine, { fontFamily: bodyStack }]}>
                   Impact: {issue.impact}
-                </Text>
-                <Text style={[styles.fixLine, { fontFamily: bodyStack }]}>
-                  Fix: {issue.fix}
                 </Text>
               </View>
             );

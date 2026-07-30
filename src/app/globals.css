@@ -201,10 +201,15 @@
     @apply font-sans;
     color-scheme: light;
     scroll-behavior: smooth;
+    /* The page white lives here, not on <body>. */
+    background: var(--white);
   }
 
+  /* Must stay transparent. The FluidCursor ink layer sits at z-index -1, which
+     paints above the root canvas background but below a background painted on
+     <body> itself — set one here and the effect silently disappears. */
   body {
-    background: var(--white);
+    background: transparent;
     color: var(--ink);
   }
 
@@ -261,6 +266,7 @@
     color: var(--ink);
   }
 
+  /* Still used by the review-progress "AI" marker, not by the tool card. */
   .step-num {
     font-family: var(--font-plex-mono), ui-monospace, monospace;
     font-size: 0.8125rem;
