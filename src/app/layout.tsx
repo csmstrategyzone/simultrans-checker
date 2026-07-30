@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
+import { FluidCursor } from "@/components/fluid-cursor";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -9,7 +10,7 @@ import "./globals.css";
 // previously shadowed by Barlow Condensed / Source Sans 3 loaded from Google
 // Fonts; those stand-ins are gone, so nothing competes with the real faces.
 
-// Mono — scores and raw machine output only.
+// Mono — scores and raw AI output only.
 const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
@@ -32,7 +33,10 @@ export default function RootLayout({
       lang="en"
       className={`${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white">
+      {/* No background on <body> — see the note in globals.css. It would bury
+          the FluidCursor ink layer, which sits at z-index -1. */}
+      <body className="min-h-full flex flex-col">
+        <FluidCursor />
         {children}
         <SiteFooter />
         <Toaster position="bottom-right" />

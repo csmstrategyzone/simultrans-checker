@@ -112,13 +112,6 @@ function FlagCard({ issue, index }: { issue: Issue; index: number }) {
         <dd className="text-pretty text-[13px] leading-[1.5] text-ink-muted">
           {issue.impact}
         </dd>
-
-        <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
-          Fix
-        </dt>
-        <dd className="text-pretty text-[13px] leading-[1.5] text-ink">
-          {issue.fix}
-        </dd>
       </dl>
     </motion.article>
   );
@@ -253,10 +246,33 @@ export function Results({
         </div>
       </motion.div>
 
+      {/* ── Examples, not certainty ─────────────────────────── */}
+      <div className="mt-6 rounded-xl border border-line bg-surface p-5">
+        <p className="text-pretty text-[13px] italic leading-[1.6] text-ink-muted">
+          {analysis.issues.length > 0 ? (
+            <>
+              These flags show examples of what a SimulTrans’ linguist would
+              catch, not an exhaustive list. We can’t guarantee our linguists
+              would fix each one exactly as shown. This is a preview to give you
+              an idea. A certified linguist review is what catches everything.
+            </>
+          ) : (
+            // The AI found nothing — which is exactly the case where the
+            // "this is only a preview" point matters most.
+            <>
+              The AI preview found no issues worth flagging here, but that is
+              not the same as a clean bill of health. This is a preview to give
+              you an idea. A certified linguist review is what catches
+              everything.
+            </>
+          )}
+        </p>
+      </div>
+
       {/* ── How the score is produced ───────────────────────── */}
       <ScoreMethodology />
 
-      {/* ── Split panel: machine output vs AI preview of a review ── */}
+      {/* ── Split panel: raw AI output vs the flags a linguist would raise ── */}
       <div className="mt-10 grid grid-cols-1 items-start overflow-hidden rounded-2xl border border-line bg-white lg:grid-cols-2">
         {/* Raw AI translation */}
         <motion.div
@@ -267,7 +283,7 @@ export function Results({
         >
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="h-1.5 w-1.5 rounded-full bg-ink-muted" />
-            <span className="eyebrow text-ink-muted">Machine Review</span>
+            <span className="eyebrow text-ink-muted">AI Translation</span>
             <AiBadge />
           </div>
 
@@ -280,7 +296,7 @@ export function Results({
           </p>
 
           <p className="mt-6 text-[11px] font-medium tracking-[0.01em] text-ink-muted/70">
-            Unedited machine output · {language}
+            Unedited AI output · {language}
           </p>
         </motion.div>
 
@@ -293,19 +309,28 @@ export function Results({
         >
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="h-1.5 w-1.5 rounded-full bg-st-blue" />
-            <span className="eyebrow text-st-blue">
-              AI Preview of a Linguist Review · {analysis.issues.length} flags
-            </span>
+            <h3
+              className="font-heading text-xl text-ink"
+              style={{ fontWeight: 700 }}
+            >
+              {analysis.issues.length > 0
+                ? `${analysis.issues.length} Flags of what a SimulTrans’ linguist would look at`
+                : "What a SimulTrans’ linguist would look at"}
+            </h3>
           </div>
 
-          <p className="mt-1.5 text-[12px] text-ink-muted">
-            What a real SimulTrans linguist would look at, previewed by AI
-          </p>
-
           <div className="mt-6 space-y-6">
-            {analysis.issues.map((issue, i) => (
-              <FlagCard key={i} issue={issue} index={i} />
-            ))}
+            {analysis.issues.length > 0 ? (
+              analysis.issues.map((issue, i) => (
+                <FlagCard key={i} issue={issue} index={i} />
+              ))
+            ) : (
+              <p className="text-pretty text-[15px] leading-[1.6] text-ink-muted">
+                The AI did not flag any issues in this translation. A certified
+                linguist still checks brand voice, glossary consistency, and
+                regulatory context that AI cannot see.
+              </p>
+            )}
           </div>
         </motion.div>
       </div>

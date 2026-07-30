@@ -12,7 +12,6 @@ const IssueSchema = z.object({
   severity: z.string(),
   problem: z.string(),
   impact: z.string(),
-  fix: z.string(),
 });
 
 const BodySchema = z.object({
@@ -21,7 +20,8 @@ const BodySchema = z.object({
     score: z.number(),
     verdict: z.string(),
     readiness: z.string(),
-    issues: z.array(IssueSchema).min(1),
+    // No floor — a publication-ready analysis legitimately has zero flags.
+    issues: z.array(IssueSchema),
   }),
   verticalLabel: z.string().min(1),
   language: z.string().min(1),

@@ -5,8 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight } from "lucide-react";
-import { LEAD_ROLES, LEAD_VOLUMES } from "@/app/api/lead/route";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import type { VerticalId } from "@/components/tool-card";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -15,8 +14,6 @@ const FormSchema = z.object({
   email: z.string().min(1, "Work email is required").email("Enter a valid work email"),
   name: z.string().trim().min(2, "Enter your full name"),
   company: z.string().trim().min(2, "Enter your company"),
-  role: z.enum(LEAD_ROLES, { message: "Select your role" }),
-  volume: z.enum(LEAD_VOLUMES).optional(),
   challenge: z.string().max(2000).optional(),
 });
 
@@ -158,7 +155,8 @@ export function LeadForm({
                 className="mt-4 font-heading text-[34px] leading-[1.05] text-white sm:text-[42px]"
                 style={{ fontWeight: 700 }}
               >
-                Get this content reviewed by a real SimulTrans linguist.
+                Tell us about your project. We’ll be in touch soon with a plan
+                and a quote.
               </h3>
 
               <p className="mt-5 text-pretty text-[15px] leading-relaxed text-white/80">
@@ -222,47 +220,6 @@ export function LeadForm({
                   <FieldError msg={errors.company?.message} />
                 </div>
 
-                <div>
-                  <label className={labelClass} htmlFor="role">
-                    Role
-                  </label>
-                  <select
-                    id="role"
-                    defaultValue=""
-                    className={fieldClass}
-                    {...register("role")}
-                  >
-                    <option value="" disabled>
-                      Select your role
-                    </option>
-                    {LEAD_ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                  <FieldError msg={errors.role?.message} />
-                </div>
-
-                <div>
-                  <label className={labelClass} htmlFor="volume">
-                    Content volume
-                  </label>
-                  <select
-                    id="volume"
-                    defaultValue=""
-                    className={fieldClass}
-                    {...register("volume")}
-                  >
-                    <option value="">Select volume</option>
-                    {LEAD_VOLUMES.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <div className="sm:col-span-2">
                   <label className={labelClass} htmlFor="challenge">
                     Biggest translation challenge?
@@ -294,6 +251,11 @@ export function LeadForm({
                   </>
                 )}
               </button>
+
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] font-medium text-white/70">
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                No obligation quote
+              </p>
 
               {serverError && (
                 <p className="mt-3 text-center text-xs text-st-gold">
