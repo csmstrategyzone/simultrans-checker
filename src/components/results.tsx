@@ -9,7 +9,7 @@ import { WhatAiCannotCatch } from "@/components/what-ai-cannot-catch";
 import { ScoreMethodology } from "@/components/score-methodology";
 import { AiBadge } from "@/components/ai-badge";
 import type { VerticalId } from "@/components/tool-card";
-import { scoreBand } from "@/lib/content";
+import { scoreBand, SEVERITY_COLOR } from "@/lib/content";
 import { countWords } from "@/lib/words";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -17,12 +17,7 @@ const COUNT_EASE = [0.22, 1, 0.36, 1] as const;
 
 const NEUTRAL = "#64748B";
 
-// Severity — Red + Gold family (Margarita's warning/severity pairing).
-const SEVERITY_COLOR: Record<Issue["severity"], { bg: string; fg: string }> = {
-  Critical: { bg: "#DB5C3B", fg: "#FFFFFF" },
-  High: { bg: "#F7941D", fg: "#0F172A" },
-  Medium: { bg: "#FFC222", fg: "#0F172A" },
-};
+// Severity colours live in lib/content so the PDF renders the same mapping.
 
 // Category — SimulTrans palette only.
 const CATEGORY_COLOR: Record<Issue["category"], string> = {
