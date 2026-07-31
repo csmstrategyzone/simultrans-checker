@@ -12,8 +12,7 @@ export function SiteFooter() {
           © Copyright 2026 SimulTrans LLC. All rights reserved.
         </p>
         <p className="text-[12px] sm:text-right">
-          This is a beta AI preview tool. Real linguist review recommended for
-          published content.
+          Nothing you paste is stored or used to train AI.
         </p>
       </div>
     </footer>

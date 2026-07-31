@@ -379,9 +379,10 @@ The verdict must be ONE sentence, maximum 30 words, it is displayed as a large p
   try {
     json = JSON.parse(cleaned);
   } catch {
+    // Length only, never the body: `cleaned` is the model's output, which
+    // contains the translation of whatever the visitor pasted.
     console.error(
-      `[analyze] attempt ${attempt}: model did not return JSON:`,
-      cleaned.slice(0, 300),
+      `[analyze] attempt ${attempt}: model did not return JSON (${cleaned.length} chars)`,
     );
     continue;
   }

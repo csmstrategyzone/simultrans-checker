@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import { FluidCanvas } from "@/components/fluid-canvas";
+import { TouchRipple } from "@/components/touch-ripple";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -40,6 +41,10 @@ export default function RootLayout({
             WebGL is unavailable, and renders nothing under reduced-motion or on
             touch devices — see the gating in fluid-canvas.tsx. */}
         <FluidCanvas />
+        {/* Touch-device counterpart to the fluid cursor. Self-guarding: it only
+            attaches a listener on coarse-pointer devices without reduced
+            motion, so it stays dormant on desktop. */}
+        <TouchRipple />
         {children}
         <SiteFooter />
         <Toaster position="bottom-right" />

@@ -53,9 +53,13 @@ export function Hero() {
           {...fade(0.1)}
           className="hero-type mx-auto max-w-[56rem] text-[clamp(2.5rem,5.2vw,4rem)] leading-[1.03] text-ink"
         >
-          <span className="block">AI translates words.</span>
-          <span className="block">Linguists translate</span>
-          <span className="block text-st-blue">meaning.</span>
+          {/* Inline below sm so the headline reflows as one sentence on a
+              phone; forced onto three lines from sm up. The explicit spaces
+              only matter in the inline state — whitespace between block
+              elements collapses. */}
+          <span className="sm:block">AI translates words.</span>{" "}
+          <span className="sm:block">Linguists translate</span>{" "}
+          <span className="sm:block text-st-blue">meaning.</span>
         </motion.h1>
 
         {/* Subheadline */}
