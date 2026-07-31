@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
-import { FluidCursor } from "@/components/fluid-cursor";
+import { FluidCanvas } from "@/components/fluid-canvas";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -36,7 +36,10 @@ export default function RootLayout({
       {/* No background on <body> — see the note in globals.css. It would bury
           the FluidCursor ink layer, which sits at z-index -1. */}
       <body className="min-h-full flex flex-col">
-        <FluidCursor />
+        {/* WebGL fluid sim. Falls back to the lighter Framer Motion cursor when
+            WebGL is unavailable, and renders nothing under reduced-motion or on
+            touch devices — see the gating in fluid-canvas.tsx. */}
+        <FluidCanvas />
         {children}
         <SiteFooter />
         <Toaster position="bottom-right" />
