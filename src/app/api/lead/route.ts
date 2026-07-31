@@ -65,12 +65,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  const lead = parsed.data;
+  // The validated lead is `parsed.data`. It is deliberately never logged: the
+  // payload carries the visitor's pasted sourceText, and anything written here
+  // lands in retained function logs — which would contradict the footer's
+  // "Nothing you paste is stored". If this route needs observability, add
+  // counters or timings, never the body.
 
-  console.log("🎯 LEAD CAPTURED");
-  console.log(JSON.stringify(lead, null, 2));
-
-  // TODO: wire HubSpot Contacts API here.
+  // TODO: wire HubSpot Contacts API here, reading from parsed.data.
   //   POST https://api.hubapi.com/crm/v3/objects/contacts
   //   Authorization: Bearer ${process.env.HUBSPOT_TOKEN}
   //   properties: { email, firstname, lastname, company,
