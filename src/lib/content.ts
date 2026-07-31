@@ -12,6 +12,31 @@ export const WHAT_AI_CANNOT_CATCH: string[] = [
   "Consistency with your existing translation memory and glossaries",
 ];
 
+/**
+ * Severity colours, shared by the results page and the PDF so the two can never
+ * drift. Red → orange → gold, matching Margarita's warning/severity pairing.
+ *
+ * Critical and High sit close together in hue by design; if they ever need to be
+ * more distinguishable, change them here once rather than in two files.
+ */
+export const SEVERITY_COLOR: Record<
+  "Critical" | "High" | "Medium",
+  { bg: string; fg: string }
+> = {
+  Critical: { bg: "#DB5C3B", fg: "#FFFFFF" },
+  High: { bg: "#F7941D", fg: "#0F172A" },
+  Medium: { bg: "#FFC222", fg: "#0F172A" },
+};
+
+/**
+ * Lowercase a vertical label for mid-sentence use ("a certified {label}
+ * linguist") without flattening acronyms — a plain .toLowerCase() turns
+ * "Software and SaaS" into "software and saas".
+ */
+export function lowerVerticalLabel(label: string): string {
+  return label.toLowerCase().replace(/\bsaas\b/g, "SaaS");
+}
+
 export type ScoreBand = {
   /** SimulTrans brand color for the band background. */
   color: string;

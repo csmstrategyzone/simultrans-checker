@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import type { VerticalId } from "@/components/tool-card";
+import { lowerVerticalLabel } from "@/lib/content";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -126,7 +127,7 @@ export function LeadForm({
             </h3>
 
             <p className="mx-auto mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-white/80">
-              A certified {verticalLabel.toLowerCase()} linguist will reach out to{" "}
+              A certified {lowerVerticalLabel(verticalLabel)} linguist will reach out to{" "}
               <span className="font-medium text-white">{submitted}</span> within
               24 hours. Look for the subject line &ldquo;Your SimulTrans review
               plan.&rdquo;
@@ -161,7 +162,7 @@ export function LeadForm({
 
               <p className="mt-5 text-pretty text-[15px] leading-relaxed text-white/80">
                 The preview above is AI. A certified specialist in{" "}
-                {verticalLabel.toLowerCase()} will review your content against
+                {lowerVerticalLabel(verticalLabel)} will review your content against
                 everything AI cannot see, then be in touch within 24 hours with a
                 review plan and same-day quote.
               </p>
