@@ -51,22 +51,79 @@ export const LATIN_FALLBACK = "NotoSans";
  * Target language to the font that can actually draw its script. Anything not
  * listed (French, Russian, Vietnamese, Turkish, ...) is Latin or Cyrillic and
  * is covered by Noto Sans.
+ *
+ * Keyed by the language NAME, not a BCP-47 code: the PDF route is handed
+ * `data.language`, which is the `value` field from lib/languages.ts — the plain
+ * English name. A code-keyed map would silently never match and every
+ * non-Latin report would fall back to Latin Noto Sans.
+ *
+ * Several languages share one script face, so entries intentionally repeat a
+ * family: Devanagari covers Hindi, Marathi, Nepali and Sanskrit; Arabic covers
+ * Persian, Urdu, Pashto, Dari and Kurdish; Ethiopic covers Amharic and Tigrinya.
  */
 const SCRIPT_FONTS: Record<string, { family: string; file: string }> = {
-  Hindi: {
-    family: "NotoSansDevanagari",
-    file: "NotoSansDevanagari-Regular.ttf",
-  },
+  // ── Devanagari ────────────────────────────────────────
+  Hindi: { family: "NotoSansDevanagari", file: "NotoSansDevanagari-Regular.ttf" },
+  Marathi: { family: "NotoSansDevanagari", file: "NotoSansDevanagari-Regular.ttf" },
+  Nepali: { family: "NotoSansDevanagari", file: "NotoSansDevanagari-Regular.ttf" },
+  Sanskrit: { family: "NotoSansDevanagari", file: "NotoSansDevanagari-Regular.ttf" },
+  // ── CJK ───────────────────────────────────────────────
   Japanese: { family: "NotoSansJP", file: "NotoSansJP-Regular.ttf" },
   "Simplified Chinese": { family: "NotoSansSC", file: "NotoSansSC-Regular.ttf" },
   "Traditional Chinese": { family: "NotoSansTC", file: "NotoSansTC-Regular.ttf" },
+  Cantonese: { family: "NotoSansTC", file: "NotoSansTC-Regular.ttf" },
   Korean: { family: "NotoSansKR", file: "NotoSansKR-Regular.ttf" },
+  // ── Arabic script ─────────────────────────────────────
   Arabic: { family: "NotoSansArabic", file: "NotoSansArabic-Regular.ttf" },
-  Thai: { family: "NotoSansThai", file: "NotoSansThai-Regular.ttf" },
-  // Not currently offered in the language dropdown, registered so that adding
-  // it to languages.ts is the only change needed.
+  Persian: { family: "NotoSansArabic", file: "NotoSansArabic-Regular.ttf" },
+  Urdu: { family: "NotoSansArabic", file: "NotoSansArabic-Regular.ttf" },
+  Pashto: { family: "NotoSansArabic", file: "NotoSansArabic-Regular.ttf" },
+  Dari: { family: "NotoSansArabic", file: "NotoSansArabic-Regular.ttf" },
+  Kurdish: { family: "NotoSansArabic", file: "NotoSansArabic-Regular.ttf" },
+  // ── Hebrew script ─────────────────────────────────────
   Hebrew: { family: "NotoSansHebrew", file: "NotoSansHebrew-Regular.ttf" },
+  Yiddish: { family: "NotoSansHebrew", file: "NotoSansHebrew-Regular.ttf" },
+  // ── Southeast Asian ───────────────────────────────────
+  Thai: { family: "NotoSansThai", file: "NotoSansThai-Regular.ttf" },
+  Lao: { family: "NotoSansLao", file: "NotoSansLao-Regular.ttf" },
+  Khmer: { family: "NotoSansKhmer", file: "NotoSansKhmer-Regular.ttf" },
+  Burmese: { family: "NotoSansMyanmar", file: "NotoSansMyanmar-Regular.ttf" },
+  // ── South Asian ───────────────────────────────────────
+  Bengali: { family: "NotoSansBengali", file: "NotoSansBengali-Regular.ttf" },
+  Punjabi: { family: "NotoSansGurmukhi", file: "NotoSansGurmukhi-Regular.ttf" },
+  Gujarati: { family: "NotoSansGujarati", file: "NotoSansGujarati-Regular.ttf" },
+  Tamil: { family: "NotoSansTamil", file: "NotoSansTamil-Regular.ttf" },
+  Telugu: { family: "NotoSansTelugu", file: "NotoSansTelugu-Regular.ttf" },
+  Kannada: { family: "NotoSansKannada", file: "NotoSansKannada-Regular.ttf" },
+  Malayalam: { family: "NotoSansMalayalam", file: "NotoSansMalayalam-Regular.ttf" },
+  Sinhala: { family: "NotoSansSinhala", file: "NotoSansSinhala-Regular.ttf" },
+  // ── Caucasus and Horn of Africa ───────────────────────
+  Georgian: { family: "NotoSansGeorgian", file: "NotoSansGeorgian-Regular.ttf" },
+  Armenian: { family: "NotoSansArmenian", file: "NotoSansArmenian-Regular.ttf" },
+  Amharic: { family: "NotoSansEthiopic", file: "NotoSansEthiopic-Regular.ttf" },
+  Tigrinya: { family: "NotoSansEthiopic", file: "NotoSansEthiopic-Regular.ttf" },
 };
+
+/**
+ * Scripts whose conjunct forms crash the PDF renderer.
+ *
+ * @react-pdf/renderer's fontkit throws "Cannot read properties of null
+ * (reading 'xCoordinate')" while positioning combining marks in Gurmukhi and
+ * Malayalam — specifically the virama sequences (U+0A4D, U+0D4D) that ordinary
+ * prose in both languages is full of. Base letters and vowel signs render, so
+ * the failure only shows up on real sentences.
+ *
+ * Verified against four font builds each (notofonts hinted/unhinted and the
+ * legacy noto-fonts hinted/unhinted), all failing identically — this is the
+ * renderer, not the font file, so a different face will not fix it.
+ *
+ * Every other Indic script we ship (Devanagari, Bengali, Gujarati, Tamil,
+ * Telugu, Kannada, Sinhala) renders conjuncts correctly.
+ *
+ * These languages stay selectable: the on-screen analysis is unaffected. Only
+ * the PDF export is refused, with a specific message instead of a 500.
+ */
+export const PDF_UNSUPPORTED_LANGUAGES = new Set(["Punjabi", "Malayalam"]);
 
 let baseRegistered = false;
 const registeredScripts = new Set<string>();

@@ -125,11 +125,11 @@ export function Results({
   const reduced = useReducedMotion();
   const band = scoreBand(analysis.score);
   const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const downloadPdf = async () => {
     setDownloading(true);
-    setDownloadError(false);
+    setDownloadError(null);
     try {
       const res = await fetch("/api/report/generate", {
         method: "POST",
@@ -142,7 +142,12 @@ export function Results({
           wordCount: countWords(sourceText),
         }),
       });
-      if (!res.ok) throw new Error("PDF generation failed");
+      if (!res.ok) {
+        // The route sends a specific reason for languages whose script the PDF
+        // renderer cannot set; surface that rather than the generic message.
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "PDF generation failed");
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -152,8 +157,12 @@ export function Results({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch {
-      setDownloadError(true);
+    } catch (err) {
+      setDownloadError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not generate the PDF. Try again.",
+      );
     } finally {
       setDownloading(false);
     }
@@ -193,8 +202,8 @@ export function Results({
             {downloading ? "Preparing…" : "Download PDF report"}
           </button>
           {downloadError && (
-            <span className="text-xs text-st-red">
-              Could not generate the PDF. Try again.
+            <span className="max-w-[22rem] text-right text-xs text-st-red">
+              {downloadError}
             </span>
           )}
         </div>

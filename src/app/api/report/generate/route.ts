@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { z } from "zod";
 import { ReportDocument, type ReportData } from "@/lib/report-document";
+import { PDF_UNSUPPORTED_LANGUAGES } from "@/lib/report-fonts";
 
 // react-pdf needs the Node runtime; this handler always runs at request time.
 export const runtime = "nodejs";
@@ -42,6 +43,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Invalid report payload" },
       { status: 400 },
+    );
+  }
+
+  // Refuse up front rather than letting fontkit throw mid-render, so the user
+  // gets a specific reason instead of a generic failure. See the note on
+  // PDF_UNSUPPORTED_LANGUAGES in lib/report-fonts.
+  if (PDF_UNSUPPORTED_LANGUAGES.has(parsed.data.language)) {
+    return NextResponse.json(
+      {
+        error: `PDF export isn’t available for ${parsed.data.language} yet. The analysis above is unaffected.`,
+      },
+      { status: 422 },
     );
   }
 
