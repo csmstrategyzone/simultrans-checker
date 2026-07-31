@@ -31,22 +31,28 @@ function FieldError({ msg }: { msg?: string }) {
   return <p className="mt-1.5 text-xs font-medium text-st-gold">{msg}</p>;
 }
 
-export function LeadForm({
-  vertical,
-  verticalLabel,
-  language,
-  sourceText,
-  score,
-  readiness,
-  onReset,
-}: {
+/**
+ * Analysis context, attached to the lead so the account manager opens the
+ * thread already informed. Optional: the form also stands alone on /analyze
+ * before anything has been analyzed, and /api/lead treats `analysis` as
+ * optional too.
+ */
+export type LeadAnalysisContext = {
   vertical: VerticalId;
-  verticalLabel: string;
   language: string;
   sourceText: string;
   score: number;
   readiness: string;
-  onReset: () => void;
+};
+
+export function LeadForm({
+  verticalLabel,
+  analysis,
+  onReset,
+}: {
+  verticalLabel: string;
+  analysis?: LeadAnalysisContext;
+  onReset?: () => void;
 }) {
   const reduced = useReducedMotion();
   const [submitted, setSubmitted] = useState<string | null>(null);
@@ -69,7 +75,8 @@ export function LeadForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          analysis: { score, readiness, vertical, language, sourceText },
+          // Omitted entirely when the visitor hasn't run an analysis yet.
+          ...(analysis ? { analysis } : {}),
         }),
       });
       const data = await res.json();
@@ -133,14 +140,16 @@ export function LeadForm({
               plan.&rdquo;
             </p>
 
-            <button
-              type="button"
-              onClick={onReset}
-              className="group mt-7 inline-flex min-h-[44px] items-center text-sm font-semibold text-st-gold hover:underline"
-            >
-              Or run another analysis
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-            </button>
+            {onReset && (
+              <button
+                type="button"
+                onClick={onReset}
+                className="group mt-7 inline-flex min-h-[44px] items-center text-sm font-semibold text-st-gold hover:underline"
+              >
+                Or run another analysis
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </button>
+            )}
           </motion.div>
         ) : (
           <motion.div

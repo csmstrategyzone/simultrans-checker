@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { Download, Loader2 } from "lucide-react";
 import type { Analysis, Issue } from "@/app/api/analyze/route";
-import { LeadForm } from "@/components/lead-form";
 import { WhatAiCannotCatch } from "@/components/what-ai-cannot-catch";
 import { ScoreMethodology } from "@/components/score-methodology";
 import { AiBadge } from "@/components/ai-badge";
@@ -114,18 +113,14 @@ function FlagCard({ issue, index }: { issue: Issue; index: number }) {
 
 export function Results({
   analysis,
-  vertical,
   verticalLabel,
   language,
   sourceText,
-  onReset,
 }: {
   analysis: Analysis;
-  vertical: VerticalId;
   verticalLabel: string;
   language: string;
   sourceText: string;
-  onReset: () => void;
 }) {
   const reduced = useReducedMotion();
   const band = scoreBand(analysis.score);
@@ -333,16 +328,8 @@ export function Results({
       {/* ── What only a real linguist can catch ─────────────── */}
       <WhatAiCannotCatch />
 
-      {/* ── Lead capture ────────────────────────────────────── */}
-      <LeadForm
-        vertical={vertical}
-        verticalLabel={verticalLabel}
-        language={language}
-        sourceText={sourceText}
-        score={analysis.score}
-        readiness={analysis.readiness}
-        onReset={onReset}
-      />
+      {/* Lead capture now lives on the /analyze page itself, below this panel,
+          so #linguist-form resolves even before anything has been analyzed. */}
     </motion.section>
   );
 }

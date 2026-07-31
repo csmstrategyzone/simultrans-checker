@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { scrollToTool } from "@/lib/scroll";
+import Link from "next/link";
 
 export function SiteHeader() {
   return (
@@ -42,14 +42,15 @@ export function SiteHeader() {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={scrollToTool}
-          className="min-h-[40px] rounded-lg bg-st-blue px-4 text-[14px] font-semibold text-white shadow-[0_4px_12px_-4px_rgba(0,82,155,0.5)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:brightness-110 active:scale-[0.98]"
+        {/* Same href on both routes: from / it navigates to /analyze and lands
+            on the form; on /analyze it is a same-page anchor scroll. */}
+        <Link
+          href="/analyze#linguist-form"
+          className="inline-flex min-h-[40px] items-center rounded-lg bg-st-blue px-4 text-[14px] font-semibold text-white shadow-[0_4px_12px_-4px_rgba(0,82,155,0.5)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:brightness-110 active:scale-[0.98]"
         >
           <span className="hidden sm:inline">Request a linguist review</span>
           <span className="sm:hidden">Request review</span>
-        </button>
+        </Link>
       </div>
     </header>
   );

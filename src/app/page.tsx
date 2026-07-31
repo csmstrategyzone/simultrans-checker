@@ -1,35 +1,37 @@
-"use client";
-
-import { useRef } from "react";
+import type { Metadata } from "next";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { SiteHeader } from "@/components/site-header";
 import { StickyCta } from "@/components/sticky-cta";
-import { ToolCard, type ToolCardHandle } from "@/components/tool-card";
 import { TrustBar } from "@/components/trust-bar";
-import { scrollToTool } from "@/lib/scroll";
+import { WhatAiCannotCatch } from "@/components/what-ai-cannot-catch";
 
+export const metadata: Metadata = {
+  title: "SimulTrans Checker — AI Translation Preview",
+  description:
+    "Preview what an AI thinks of any translation. See what a real SimulTrans linguist would catch. Request a full review from our certified team.",
+};
+
+/**
+ * Landing page: positioning only. The tool, its results, and the linguist form
+ * live on /analyze — the hero CTAs link there.
+ */
 export default function Home() {
-  const tool = useRef<ToolCardHandle>(null);
-
-  const runSampleReport = () => {
-    scrollToTool();
-    tool.current?.loadSampleAndAnalyze();
-  };
-
   return (
     <>
       <SiteHeader />
       <DisclaimerBanner />
       <main className="flex-1">
-        <Hero onRunCheck={scrollToTool} onSampleReport={runSampleReport} />
+        <Hero />
         <TrustBar />
         <HowItWorks />
 
-        <div className="bg-surface px-6 py-20">
-          <ToolCard ref={tool} />
-        </div>
+        <section className="bg-surface px-6 py-16">
+          <div className="mx-auto max-w-5xl">
+            <WhatAiCannotCatch />
+          </div>
+        </section>
       </main>
       <StickyCta />
     </>
