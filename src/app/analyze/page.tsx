@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AnalyzePanel } from "@/components/analyze-panel";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
@@ -16,11 +15,10 @@ export default function AnalyzePage() {
       <SiteHeader />
       <DisclaimerBanner />
       <main className="flex-1">
-        {/* AnalyzePanel reads ?sample=true via useSearchParams, which needs a
-            Suspense boundary or the whole route opts out of static rendering. */}
-        <Suspense fallback={<div className="min-h-[60vh]" />}>
-          <AnalyzePanel />
-        </Suspense>
+        {/* The Suspense boundary for ?sample=true lives inside AnalyzePanel,
+            around a leaf that renders nothing — so the tool and lead form stay
+            in the prerendered HTML instead of being swapped for a fallback. */}
+        <AnalyzePanel />
       </main>
     </>
   );
