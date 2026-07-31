@@ -66,11 +66,31 @@ function humanError(status: number, serverMsg?: string): string {
 }
 
 export type ToolCardHandle = {
-  /** Hero's "See a sample report": load the Medical sample and fire Analyze. */
+  /** "See a sample report" / ?sample=true: load the Medical sample and analyze. */
   loadSampleAndAnalyze: () => void;
 };
 
-export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
+/** What the page needs to attach an analysis to a lead-form submission. */
+export type AnalyzedContext = {
+  vertical: VerticalId;
+  verticalLabel: string;
+  language: string;
+  sourceText: string;
+  score: number;
+  readiness: string;
+};
+
+export type ToolCardProps = {
+  /**
+   * Fires with the analysis context when a run succeeds, and with null on
+   * reset. Lets the lead form outside this component quote the analysis
+   * without lifting the whole tool's state out.
+   */
+  onAnalyzed?: (ctx: AnalyzedContext | null) => void;
+};
+
+export const ToolCard = forwardRef<ToolCardHandle, ToolCardProps>(
+  function ToolCard({ onAnalyzed }, ref) {
   const [vertical, setVertical] = useState<VerticalId>("medical");
   const [language, setLanguage] = useState("German");
   const [sourceText, setSourceText] = useState("");
@@ -119,8 +139,17 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
 
       // Hold `loading` until the progress panel finishes its final checkmark —
       // it hands back via onSettled.
-      setResult(data as Analysis);
+      const analysis = data as Analysis;
+      setResult(analysis);
       setStatus("done");
+      onAnalyzed?.({
+        vertical: v,
+        verticalLabel: VERTICALS.find((x) => x.id === v)!.label,
+        language: l,
+        sourceText: s,
+        score: analysis.score,
+        readiness: analysis.readiness,
+      });
     } catch {
       setError("Couldn’t reach the analysis service. Check your connection.");
       setStatus("error");
@@ -148,6 +177,7 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
     setSampleLoaded(false);
     setVertical("medical");
     setLanguage("German");
+    onAnalyzed?.(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -368,14 +398,13 @@ export const ToolCard = forwardRef<ToolCardHandle>(function ToolCard(_, ref) {
           <Results
             key="results"
             analysis={result}
-            vertical={vertical}
             verticalLabel={activeVertical.label}
             language={language}
             sourceText={lastRun.current.sourceText}
-            onReset={reset}
           />
         ) : null}
       </AnimatePresence>
     </>
   );
-});
+  },
+);
