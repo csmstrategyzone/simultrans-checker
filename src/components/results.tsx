@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Lock } from "lucide-react";
 import type { Analysis, Issue } from "@/app/api/analyze/route";
 import { WhatAiCannotCatch } from "@/components/what-ai-cannot-catch";
 import { ScoreMethodology } from "@/components/score-methodology";
 import { AiBadge } from "@/components/ai-badge";
+import { EmailGateModal } from "@/components/email-gate-modal";
 import type { VerticalId } from "@/components/tool-card";
-import { scoreBand, SEVERITY_COLOR } from "@/lib/content";
+import { useEmailGate } from "@/hooks/use-email-gate";
+import { flagsHeading, scoreBand, SEVERITY_COLOR } from "@/lib/content";
 import { countWords } from "@/lib/words";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -63,9 +65,24 @@ function Score({ score }: { score: number }) {
   );
 }
 
+/**
+ * Severities whose detail sits behind the email gate. Everything else (today
+ * only Medium) always renders in full, so a new lower severity added upstream
+ * stays ungated by default.
+ */
+const GATED_SEVERITIES = new Set<Issue["severity"]>(["Critical", "High"]);
+
+/** "critical" / "high-severity", for the locked-overlay sentence. */
+const GATED_NOUN: Partial<Record<Issue["severity"], string>> = {
+  Critical: "critical",
+  High: "high-severity",
+};
+
 function FlagCard({ issue, index }: { issue: Issue; index: number }) {
   const reduced = useReducedMotion();
   const sev = SEVERITY_COLOR[issue.severity];
+  const { isUnlocked, openGate } = useEmailGate();
+  const locked = GATED_SEVERITIES.has(issue.severity) && !isUnlocked;
 
   return (
     <motion.article
@@ -95,18 +112,43 @@ function FlagCard({ issue, index }: { issue: Issue; index: number }) {
         <AiBadge />
       </div>
 
-      <p className="mt-2.5 text-pretty text-[15px] font-medium leading-[1.5] text-ink">
-        {issue.problem}
-      </p>
+      {locked ? (
+        /* Detail replaced outright rather than blurred — a blur still leaves
+           the text in the accessibility tree and readable to a screen reader. */
+        <div className="mt-2.5 rounded-xl border border-st-blue/25 bg-[#F8FAFC] p-4">
+          <div className="flex gap-3">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-st-blue" />
+            <div>
+              <p className="text-pretty text-[14px] leading-[1.5] text-ink">
+                Full details of this {GATED_NOUN[issue.severity]} issue are
+                available with a certified SimulTrans linguist review.
+              </p>
+              <button
+                type="button"
+                onClick={() => openGate()}
+                className="mt-2.5 inline-flex min-h-[36px] items-center text-[13px] font-semibold text-st-blue underline-offset-2 hover:underline"
+              >
+                Unlock full details
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="mt-2.5 text-pretty text-[15px] font-medium leading-[1.5] text-ink">
+            {issue.problem}
+          </p>
 
-      <dl className="mt-3 grid grid-cols-[72px_1fr] gap-x-3 gap-y-2 sm:grid-cols-[100px_1fr]">
-        <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
-          Impact
-        </dt>
-        <dd className="text-pretty text-[13px] leading-[1.5] text-ink-muted">
-          {issue.impact}
-        </dd>
-      </dl>
+          <dl className="mt-3 grid grid-cols-[72px_1fr] gap-x-3 gap-y-2 sm:grid-cols-[100px_1fr]">
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
+              Impact
+            </dt>
+            <dd className="text-pretty text-[13px] leading-[1.5] text-ink-muted">
+              {issue.impact}
+            </dd>
+          </dl>
+        </>
+      )}
     </motion.article>
   );
 }
@@ -126,6 +168,7 @@ export function Results({
   const band = scoreBand(analysis.score);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const { isUnlocked, openGate } = useEmailGate();
 
   const downloadPdf = async () => {
     setDownloading(true);
@@ -168,6 +211,18 @@ export function Results({
     }
   };
 
+  /**
+   * The PDF always carries the full report, so the gate sits at the download
+   * step: unlock first, then the same click's download runs on the callback.
+   */
+  const onDownloadClick = () => {
+    if (isUnlocked) {
+      void downloadPdf();
+      return;
+    }
+    openGate(() => void downloadPdf());
+  };
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
@@ -190,7 +245,7 @@ export function Results({
         <div className="flex flex-col items-end gap-1">
           <button
             type="button"
-            onClick={downloadPdf}
+            onClick={onDownloadClick}
             disabled={downloading}
             className="inline-flex h-11 items-center gap-2 rounded-xl bg-st-blue px-5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
           >
@@ -245,29 +300,6 @@ export function Results({
         </div>
       </motion.div>
 
-      {/* ── Examples, not certainty ─────────────────────────── */}
-      <div className="mt-6 rounded-xl border border-line bg-surface p-5">
-        <p className="text-pretty text-[13px] italic leading-[1.6] text-ink-muted">
-          {analysis.issues.length > 0 ? (
-            <>
-              These flags show examples of what a SimulTrans’ linguist would
-              catch, not an exhaustive list. We can’t guarantee our linguists
-              would fix each one exactly as shown. This is a preview to give you
-              an idea. A certified linguist review is what catches everything.
-            </>
-          ) : (
-            // The AI found nothing — which is exactly the case where the
-            // "this is only a preview" point matters most.
-            <>
-              The AI preview found no issues worth flagging here, but that is
-              not the same as a clean bill of health. This is a preview to give
-              you an idea. A certified linguist review is what catches
-              everything.
-            </>
-          )}
-        </p>
-      </div>
-
       {/* ── How the score is produced ───────────────────────── */}
       <ScoreMethodology />
 
@@ -312,9 +344,7 @@ export function Results({
               className="font-heading text-xl text-ink"
               style={{ fontWeight: 700 }}
             >
-              {analysis.issues.length > 0
-                ? `${analysis.issues.length} Flags of what a SimulTrans’ linguist would look at`
-                : "What a SimulTrans’ linguist would look at"}
+              {flagsHeading(analysis.issues.length)}
             </h3>
           </div>
 
@@ -339,6 +369,10 @@ export function Results({
 
       {/* Lead capture now lives on the /analyze page itself, below this panel,
           so #linguist-form resolves even before anything has been analyzed. */}
+
+      {/* One instance for the whole results view — the download button and every
+          locked flag card open this same gate through useEmailGate(). */}
+      <EmailGateModal />
     </motion.section>
   );
 }

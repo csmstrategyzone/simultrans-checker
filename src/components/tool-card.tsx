@@ -27,7 +27,8 @@ export const VERTICALS: {
   {
     id: "medical",
     label: "Medical and Pharma",
-    sublabel: "MDR · IVDR · FDA",
+    sublabel:
+      "Medical Device Regulation · In Vitro Diagnostic Regulation · Food and Drug Administration",
     sample:
       "Do not use if the patient exhibits signs of hypersensitivity to any component. Discontinue treatment immediately if severe reactions occur and seek emergency medical assistance. This device may cause tissue damage if used incorrectly.",
   },
@@ -41,14 +42,14 @@ export const VERTICALS: {
   {
     id: "marketing",
     label: "Marketing and Brand",
-    sublabel: "Web · Campaigns · Promotional copy",
+    sublabel: "Website · Campaigns · Promotional copy",
     sample:
       "Break through the noise with content that connects. Our AI-powered platform helps growth teams move faster than ever, turning insight into action in seconds, not weeks.",
   },
   {
     id: "software",
     label: "Software and SaaS",
-    sublabel: "UI · Docs · Product",
+    sublabel: "User Interface · Documents · Product",
     sample:
       "Unable to complete this action. Please check your permissions and try again. If the problem persists, contact your workspace administrator or reach out to our support team for assistance.",
   },

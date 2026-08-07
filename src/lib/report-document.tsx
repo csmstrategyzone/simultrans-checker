@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import {
+  flagsHeading,
   lowerVerticalLabel,
   scoreBand,
   SEVERITY_COLOR,
@@ -178,14 +179,6 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   metaValue: { fontFamily: BODY_FONT, fontWeight: 400, fontSize: 12, color: INK },
-  previewNote: {
-    fontFamily: BODY_FONT,
-    fontStyle: "italic",
-    fontSize: 9,
-    lineHeight: 1.5,
-    color: MUTED,
-    marginTop: 12,
-  },
   contentBox: {
     backgroundColor: SURFACE,
     borderWidth: 1,
@@ -376,17 +369,6 @@ export function ReportDocument({ data }: { data: ReportData }) {
             </View>
           </View>
 
-          {/* Same "examples, not certainty" note the web results page carries.
-              Deliberately NOT on bodyStack: it is pure English, and react-pdf
-              resolves the italic against every family in a stack — the script
-              faces have no italic, which fails the whole render. */}
-          <Text style={styles.previewNote}>
-            These flags show examples of what a SimulTrans’ linguist would catch,
-            not an exhaustive list. We can’t guarantee our linguists would fix
-            each one exactly as shown. This is a preview to give you an idea. A
-            certified linguist review is what catches everything.
-          </Text>
-
           {/* Source content */}
           <Text style={styles.sectionTitle}>Original source content</Text>
           <View style={styles.contentBox}>
@@ -405,9 +387,7 @@ export function ReportDocument({ data }: { data: ReportData }) {
 
           {/* Flags — heading matches the web results page verbatim. */}
           <Text style={styles.sectionTitle}>
-            {analysis.issues.length > 0
-              ? `${analysis.issues.length} Flags of what a SimulTrans’ linguist would look at`
-              : "What a SimulTrans’ linguist would look at"}
+            {flagsHeading(analysis.issues.length)}
           </Text>
           {analysis.issues.length === 0 && (
             <Text style={[styles.metaLine, { fontFamily: bodyStack }]}>

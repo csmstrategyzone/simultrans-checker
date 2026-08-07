@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { MorphingGreeting } from "@/components/morphing-greeting";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /**
  * Landing hero. Vertical rhythm is deliberately tight so the trust pill,
- * greeting, headline, subhead and both CTAs clear the fold at 900px viewport
- * height. Mobile keeps the looser spacing — it scrolls naturally there.
+ * headline, subhead and both CTAs clear the fold at 900px viewport height.
+ * Mobile keeps the looser spacing — it scrolls naturally there.
  */
 export function Hero() {
   const reduced = useReducedMotion();
@@ -42,11 +41,6 @@ export function Hero() {
             Trusted since 1984 · 100+ languages
           </span>
         </motion.div>
-
-        {/* Rotating greeting eyebrow */}
-        <div style={{ textAlign: "center", marginBottom: "12px" }}>
-          <MorphingGreeting />
-        </div>
 
         {/* Headline */}
         <motion.h1

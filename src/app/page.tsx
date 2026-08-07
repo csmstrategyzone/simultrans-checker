@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { DisclaimerBanner } from "@/components/disclaimer-banner";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { SiteHeader } from "@/components/site-header";
@@ -21,7 +20,6 @@ export default function Home() {
   return (
     <>
       <SiteHeader />
-      <DisclaimerBanner />
       <main className="flex-1">
         <Hero />
         <TrustBar />
