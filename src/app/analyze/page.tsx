@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { AnalyzePanel } from "@/components/analyze-panel";
-import { DisclaimerBanner } from "@/components/disclaimer-banner";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
@@ -13,7 +12,6 @@ export default function AnalyzePage() {
   return (
     <>
       <SiteHeader />
-      <DisclaimerBanner />
       <main className="flex-1">
         {/* The Suspense boundary for ?sample=true lives inside AnalyzePanel,
             around a leaf that renders nothing — so the tool and lead form stay

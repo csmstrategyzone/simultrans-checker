@@ -29,6 +29,18 @@ export const SEVERITY_COLOR: Record<
 };
 
 /**
+ * Heading over the flag list, shared by the results page and the PDF. Lives here
+ * for the same reason the severity colours do: the two surfaces are expected to
+ * read identically, and the singular/plural/zero cases are easy to get wrong in
+ * one place and not the other.
+ */
+export function flagsHeading(count: number): string {
+  if (count === 0) return "No issues flagged for linguist review";
+  if (count === 1) return "1 issue flagged for linguist review";
+  return `${count} issues flagged for linguist review`;
+}
+
+/**
  * Lowercase a vertical label for mid-sentence use ("a certified {label}
  * linguist") without flattening acronyms — a plain .toLowerCase() turns
  * "Software and SaaS" into "software and saas".
